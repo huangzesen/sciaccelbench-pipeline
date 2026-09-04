@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sciaccel-pipeline"
-version = "0.1.3"
-description = "sab: the ScienceAccelBench packaging CLI (one tool, two modes), as a versioned package"
+version = "0.2.0"
+description = "sab: the ScienceAccelBench packaging CLI (one tool, three modes), as a versioned package"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
 

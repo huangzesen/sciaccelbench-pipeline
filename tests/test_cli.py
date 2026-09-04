@@ -20,8 +20,8 @@ class HelpTreeTest(unittest.TestCase):
     def test_top_level_lists_all_modes(self):
         proc = run_cli("--help")
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("{codebase,task,brief,status,validate-harbor}", proc.stdout)
-        self.assertIn("sab: the ScienceAccelBench packaging CLI (one tool, two modes).", proc.stdout)
+        self.assertIn("{codebase,task,review,brief,status,validate-harbor}", proc.stdout)
+        self.assertIn("sab: the ScienceAccelBench packaging CLI (one tool, three modes).", proc.stdout)
 
     def test_codebase_subcommands(self):
         proc = run_cli("codebase", "--help")
@@ -32,6 +32,11 @@ class HelpTreeTest(unittest.TestCase):
         proc = run_cli("task", "--help")
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("{scaffold,add-check,lint,selfcheck,build,plan,consent,review}", proc.stdout)
+
+    def test_review_subcommands(self):
+        proc = run_cli("review", "--help")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("{codebase,task,status}", proc.stdout)
 
     def test_missing_mode_fails(self):
         proc = run_cli()
