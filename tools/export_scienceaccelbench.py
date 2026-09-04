@@ -5,6 +5,7 @@
         [--revision <canonical-revision>]
 
 Writes, under <dest>/skills/package-sciaccel-task/:
+    README.md                    generated marker: this directory is managed upstream
     SKILL.md, SPEC.html          from skill/package-sciaccel-task/
     templates/**                 from src/sciaccel_pipeline/templates/
     scripts/sab.py               thin wrapper (tools/wrappers/sab.py)
@@ -37,6 +38,28 @@ DEFAULT_REVISION = "UNPUBLISHED_LOCAL_SOURCE"
 PACKAGE_SRC = REPO / "src" / "sciaccel_pipeline"
 SKILL_SRC = REPO / "skill" / "package-sciaccel-task"
 WRAPPERS = REPO / "tools" / "wrappers"
+
+SKILL_README = """\
+# Generated directory — managed by sciaccelbench-pipeline
+
+Everything in `skills/package-sciaccel-task/` — `SKILL.md`, `SPEC.html`,
+`templates/`, `scripts/` and `vendor-manifest.json` — is a deterministic export
+from the canonical, private repository
+
+    {repo}
+
+pinned to one commit in `vendor-manifest.json`. **Do not edit these files
+here.** `npm run check` (and CI) runs `scripts/vendor_sync.py verify`, which
+fails on any hand edit, and the next sync overwrites the directory.
+
+- To change the pipeline: open a PR in the canonical repository, merge it,
+  then run `tools/release.py --dest <this checkout> --pr` from there.
+- To see whether this copy is current: `python3 scripts/vendor_sync.py status`.
+- To verify offline: `python3 scripts/vendor_sync.py verify`.
+
+The command everyone runs is unchanged:
+`python3 skills/package-sciaccel-task/scripts/sab.py ...`
+"""
 
 VENDOR_README = """\
 # Generated vendored code — do not edit
@@ -82,6 +105,7 @@ def collect_outputs() -> dict[str, tuple[bytes, bool]]:
     def add(rel: str, src: Path) -> None:
         outputs[rel] = (src.read_bytes(), bool(src.stat().st_mode & 0o111))
 
+    outputs["README.md"] = (SKILL_README.format(repo=UPSTREAM_REPO).encode("utf-8"), False)
     add("SKILL.md", SKILL_SRC / "SKILL.md")
     add("SPEC.html", SKILL_SRC / "SPEC.html")
     for path in iter_template_files():
@@ -104,7 +128,7 @@ def build_manifest(outputs: dict[str, tuple[bytes, bool]], revision: str) -> dic
         "upstream_revision": revision,
         "package": "sciaccel-pipeline",
         "package_version": sciaccel_pipeline.__version__,
-        "export_boundary": ["SKILL.md", "SPEC.html", "templates/", "scripts/sab.py",
+        "export_boundary": ["README.md", "SKILL.md", "SPEC.html", "templates/", "scripts/sab.py",
                             "scripts/harbor_validate.py", "scripts/vendor_sync.py", "scripts/_vendor/"],
         "notes": "Generated files; do not edit by hand. Verify with scripts/vendor_sync.py verify (offline).",
         "files": {name: {"sha256": sha256_bytes(data), "mode": "755" if executable else "644"}
