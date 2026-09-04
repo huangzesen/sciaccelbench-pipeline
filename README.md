@@ -21,7 +21,7 @@ Contents:
   embedding wrapper), `util`, `briefs`, `codebase`, `metadata` +
   `metadata_render` + `privacy` (the Step 1.5 informational report and its
   privacy/path-containment rules), `lint`, `runplan` (plan/consent, STOP 3),
-  `taskcmds`, `review` (STOP 5), `status`, and `harbor_validate` (the
+  `taskcmds`, `review` (STOP 5), `reviewer` (the review mode: one brief per review stop, STOP 2 and STOP 6), `status`, and `harbor_validate` (the
   structural Harbor-leaf validator, unchanged).
 - `src/sciaccel_pipeline/templates/` — the briefing, task and check templates
   (package data, so the installed CLI works offline).
