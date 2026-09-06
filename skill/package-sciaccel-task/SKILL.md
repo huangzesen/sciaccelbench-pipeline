@@ -286,7 +286,7 @@ step remain available.
   you propose a policy at STOP 4; open an entry when its symptom matches, and
   cite it in the rubric or the leaf README where it shaped a check. When a
   variant, an altbuild or a review exposes a new one, file it as a `Known
-  pitfall` issue on the pipeline repository with the measurement; the curator
+  pitfall` issue on the benchmark repository with the measurement; the curator
   adds the file in the next revision. Entries carry measured numbers only.
 - **Policy type, tolerance, window and variant are hypotheses** until the
   human finalizes them. The first `selfcheck` is a calibration run: read the
