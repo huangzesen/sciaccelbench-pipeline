@@ -108,6 +108,9 @@ def collect_outputs() -> dict[str, tuple[bytes, bool]]:
     outputs["README.md"] = (SKILL_README.format(repo=UPSTREAM_REPO).encode("utf-8"), False)
     add("SKILL.md", SKILL_SRC / "SKILL.md")
     add("SPEC.html", SKILL_SRC / "SPEC.html")
+    for path in sorted((SKILL_SRC / "references").rglob("*")):
+        if path.is_file():
+            add(f"references/{path.relative_to(SKILL_SRC / 'references').as_posix()}", path)
     for path in iter_template_files():
         add(f"templates/{path.relative_to(PACKAGE_SRC / 'templates').as_posix()}", path)
     add("scripts/sab.py", WRAPPERS / "sab.py")
@@ -128,7 +131,7 @@ def build_manifest(outputs: dict[str, tuple[bytes, bool]], revision: str) -> dic
         "upstream_revision": revision,
         "package": "sciaccel-pipeline",
         "package_version": sciaccel_pipeline.__version__,
-        "export_boundary": ["README.md", "SKILL.md", "SPEC.html", "templates/", "scripts/sab.py",
+        "export_boundary": ["README.md", "SKILL.md", "SPEC.html", "references/", "templates/", "scripts/sab.py",
                             "scripts/harbor_validate.py", "scripts/vendor_sync.py", "scripts/_vendor/"],
         "notes": "Generated files; do not edit by hand. Verify with scripts/vendor_sync.py verify (offline).",
         "files": {name: {"sha256": sha256_bytes(data), "mode": "755" if executable else "644"}
