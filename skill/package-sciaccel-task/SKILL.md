@@ -402,6 +402,14 @@ Rules that hold while reviewing:
   of the presentation, not a record.
 - **Only measured numbers**, from the page or from a command you ran; never an
   estimate beside a measurement. A shipped record is the author's claim; say so.
+- **Ask what the grader compares by position.** For every check, say what
+  `validate.py` compares slot by slot and why that slot is physical. A
+  grader that compares by position something a correct port may permute (a
+  particle, a sink, a mode, a rank-ordered list) in any array or block, or
+  that grades bookkeeping (step counts, timings, layouts, random draws, an
+  eigenvector's sign or phase), is RED: it fails a correct port on
+  non-physics. A self-test on a permuted reference that carries every block
+  is the evidence that clears it; a single-block self-test is not.
 - **The margin flags are reading order, not a pass rule.** A bound is judged by
   whether it rejects a real implementation fault and leaves headroom for a
   genuinely different implementation on the target. Do not invent thresholds
