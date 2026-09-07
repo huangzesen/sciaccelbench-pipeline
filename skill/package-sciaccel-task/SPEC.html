@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ScienceAccelBench packaging pipeline, revision 5.11.1</title>
+<title>ScienceAccelBench packaging pipeline, revision 5.11.2</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root {
@@ -98,7 +98,7 @@
   <h1>Packaging pipeline</h1>
   <p class="lede">The design specification for the skill under <code>skills/package-sciaccel-task/</code>: the canonical source the skill and its CLI are written against. English only, throughout the skill and every task it stamps.</p>
   <dl class="meta">
-    <dt>Status</dt><dd>Current. Revision 5.11.1 (three pitfall entries from the PyAMG revision: a library eigensolver seeded from the global RNG, a BLAS thread pool sized from the host core count, gitignored caches in the contract fingerprint; the index grouped into five classes, entries of one class cross-linked, the storage-precision case moved from the residual entry into <code>output-precision-floors-the-bound</code>, formerly <code>text-precision-caps-the-variant</code>; no CLI behaviour change). Carries forward 5.11.0 (known pitfalls: a reference under <code>references/pitfalls/</code> in the skill, one measured failure mode per file, indexed one line each at the top level, read at Step 2 and at calibration and at the task review stop, submitted as <em>Known pitfall</em> issues on the benchmark repository; §6. Carries forward 5.10.2: pointwise grades physically meaningful production quantities only, §2, §4.5 and §6).</dd>
+    <dt>Status</dt><dd>Current. Revision 5.11.2 (the contract fingerprint skips a fixed list of generated files (<code>.pytest_cache/</code>, <code>__pycache__/</code>, <code>.ruff_cache/</code>, <code>.mypy_cache/</code>, <code>.hypothesis/</code>, <code>.ipynb_checkpoints/</code>, <code>*.egg-info/</code>, <code>.DS_Store</code>) under the contract directories, <code>selfcheck</code> refuses to run while any is present, and <code>status</code> lists them; every other file there is contract; §6). Carries forward 5.11.1 (three pitfall entries from the PyAMG revision: a library eigensolver seeded from the global RNG, a BLAS thread pool sized from the host core count, gitignored caches in the contract fingerprint; the index grouped into five classes, entries of one class cross-linked, the storage-precision case moved from the residual entry into <code>output-precision-floors-the-bound</code>, formerly <code>text-precision-caps-the-variant</code>; no CLI behaviour change). Carries forward 5.11.0 (known pitfalls: a reference under <code>references/pitfalls/</code> in the skill, one measured failure mode per file, indexed one line each at the top level, read at Step 2 and at calibration and at the task review stop, submitted as <em>Known pitfall</em> issues on the benchmark repository; §6. Carries forward 5.10.2: pointwise grades physically meaningful production quantities only, §2, §4.5 and §6).</dd>
     <dt>Scope</dt><dd>Skill, one CLI with three modes, templates, root docs. Leaves that predate the form are out of scope (§11).</dd>
   </dl>
 </header>
@@ -263,7 +263,7 @@ sab.py validate-harbor [leaf …] [--all tasks]      <span class="c"># what npm 
 <p><code>sab.py task review --present</code> prints the presentation alone, for chat. <code>status</code> reports a task PR-ready when a passing, non-stale selfcheck exists and the review brief has been printed.</p>
 
 <h3>4.4 The review phase</h3>
-<p>The review phase is the third phase of the workflow and extensive by design: several rounds are the norm. CI runs the structural validator and <code>sab.py status --task &lt;leaf&gt; --ci-freshness</code> on every changed leaf that carries a record, and fails the PR when the self-validation record is stale against the contract fingerprint: the evidence under <code>comment/pipeline/</code> must match the checks, drivers, Dockerfiles and <code>task.toml</code> in the PR. That freshness gate is the CLI's one contribution to review; it costs no Docker.</p>
+<p>The review phase is the third phase of the workflow and extensive by design: several rounds are the norm. CI runs the structural validator and <code>sab.py status --task &lt;leaf&gt; --ci-freshness</code> on every changed leaf that carries a record, and fails the PR when the self-validation record is stale against the contract fingerprint: the evidence under <code>comment/pipeline/</code> must match the checks, drivers, Dockerfiles and <code>task.toml</code> in the PR. The fingerprint covers every file under <code>tests/</code>, <code>solution/</code>, <code>environment/</code> and <code>target/</code> except a fixed list of generated names a commit never carries (<code>.pytest_cache/</code>, <code>__pycache__/</code>, <code>.ruff_cache/</code>, <code>.mypy_cache/</code>, <code>.hypothesis/</code>, <code>.ipynb_checkpoints/</code>, <code>*.egg-info/</code>, <code>.DS_Store</code>), so a record taken on a working tree agrees with CI's checkout of the commit; <code>selfcheck</code> refuses to run while one of those is present, since the image is built from <code>tests/</code>. A tracked dotfile is contract and moves the fingerprint. That freshness gate is the CLI's one contribution to review; it costs no Docker.</p>
 <p>Every round starts from the review presentation (§4.3), reprinted after each revision with its line on what changed. Reviewers (the curator and the domain expert) come back with science changes, wording changes, or reproduction: a reviewer runs <code>task selfcheck</code> on their own machine under their own consent, and their result is a PR comment, not a record. Every revision goes through the calibration loop again: edit, <code>lint</code>, <code>plan</code> (which asks again only if the plan changed), <code>selfcheck</code> on the consented host, push, <code>task review</code> reprinted. The finalized numbers are whatever the rubrics say at merge. A domain expert who is not satisfied redesigns the task with the PR as a priori information; the CLI enforces the structure of every revision. The CLI keeps no PR state: it does not read comments, does not know who approved, and never merges; everything needed to resume a review on another machine is in the leaf, and the only thing to ask again there is consent. The repository's pull-request template carries the reviewer checklist, which is the reading order above.</p>
 
 <h3>4.5 The review mode: the reviewer's side of the two review stops</h3>
@@ -361,7 +361,7 @@ sab.py validate-harbor [leaf …] [--all tasks]      <span class="c"># what npm 
 <p>Leaves that predate this form keep their own drivers; <code>lint --allow-custom-drivers</code> downgrades interface differences to warnings. They are migrated leaf by leaf.</p>
 
 
-<footer>ScienceAccelBench · skills/package-sciaccel-task/SPEC.html · revision 5.11.1</footer>
+<footer>ScienceAccelBench · skills/package-sciaccel-task/SPEC.html · revision 5.11.2</footer>
 </main>
 </div>
 </body>
