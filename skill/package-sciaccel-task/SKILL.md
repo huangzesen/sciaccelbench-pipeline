@@ -1,7 +1,7 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, decompose it into semi-independent modules with human approval, get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates what you write and never writes science, runs anything remotely, or merges.
-version: 5.11.2
+version: 5.11.3
 last_changed_at: "2026-09-06T07:35:00Z"
 ---
 
@@ -216,6 +216,19 @@ step remain available.
   whether the upstream reference is reproduced and to how many digits, output
   formats and non-determinism; they inform the module cut and become the
   measured runtimes of the survey. Docker starts only after STOP 3.
+- **STOP 1 is a brief, not two files.** Present the module cut as one page
+  the human reads in a minute, drawn from `overview.md` and `modules.json`:
+  the codebase (what it simulates in two sentences, languages with lines of
+  code and the tool that counted them, licence, build system and measured
+  build time), the tests (suites and example decks found, how they run, how
+  many ran natively and reproduced the upstream reference), one row per
+  module (slug, title, what it computes, owned paths, lines of code,
+  expensive path, official tests that exercise it, hazards), the shared
+  infrastructure once with its lines of code, everything left out with its
+  reason, and the ask: approve all, a subset, or send it back, plus any
+  decision the cut depends on (a data download, a duplicated codebase, a
+  licence, an external dependency). `propose-modules` prints the module
+  table; the brief is yours to write.
 - **Step 1.5 is a hard stop.** After the module cut is approved, open the
   source PR and stop: report the link and wait for the human to review and
   merge it. Do not write the test survey, scaffold a task or author checks on
@@ -299,6 +312,14 @@ step remain available.
   from the nominal-versus-variant runs. Bring the measurements; the human
   decides. Any module packaged THIN (fewer than four suitable official
   tests) or with custom checks needs the human's explicit agreement.
+- **How many checks.** At least four suitable official tests per module;
+  about thirty is the ideal for a module of ordinary size; preferably fewer
+  than fifty. The count is set by coverage, never by run time: every
+  suitable official test, every graded stage of a multi-stage test, every
+  standalone component-suite target and every official example deck the
+  tree ships is a check, and one run is never split by output file to pad
+  the count. A module that would pass fifty is a module-cut question for the
+  human at STOP 1 or STOP 4, not a reason to drop a suitable test.
 - **The budget is guidance, counts run time only, and never limits the
   checks.** `suite_budget_s` (default 900) is the run time of all checks on
   one initial condition under the declared resources, with every check's

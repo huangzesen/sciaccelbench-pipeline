@@ -46,7 +46,11 @@ STEP 1  Investigate the codebase, then propose the module cut.
 
   Read {code} as a scientist would: what it simulates, the build system, the
   production entry points, where the official test suites and the standard
-  example problems live and how they run, and the licence. Write that up as {state}/overview.md (one page).
+  example problems live and how they run, and the licence. Write that up as
+  {state}/overview.md (one page): what the code simulates and for whom, the
+  size (lines of code per language, files, and the tool that counted them),
+  the build system and measured build time, the test suites and example decks
+  with what the investigation runs showed, the licence and its pin.
 
   Then write {state}/modules.json: a proposal to decompose the codebase into
   modules. Modules are conceptually independent parts, cut for manageability
@@ -73,9 +77,27 @@ STEP 1  Investigate the codebase, then propose the module cut.
     "not_packaged": [{{"what": "...", "why": "..."}}]
   }}
 
-  Run `propose-modules` again to validate the file, show the human the table it
-  prints together with overview.md, and STOP. The human approves with
-  `approve-modules --human-ref "<their words>"`.
+  Run `propose-modules` again to validate the file; it prints the module table.
+
+  Then present STOP 1 as one brief the human reads in a minute, drawn from
+  overview.md and modules.json, never the two raw files:
+
+    Codebase   <name> at <pin>: what it simulates, in two sentences; language(s)
+               with lines of code (cloc, or `wc -l` over the source tree; say
+               which); licence; build system and the measured native build time.
+    Tests      the official test suites and example decks found: how many, how
+               they run, how many ran natively and reproduced the upstream
+               reference, and to how many digits.
+    Modules    one row per proposed module: slug | title | what it computes |
+               owned paths | lines of code | expensive path | official tests
+               that exercise it | hazards.
+    Shared     the shared infrastructure, listed once, with its lines of code.
+    Left out   every not_packaged entry with its reason.
+    Ask        approve all, approve a subset, or send it back; and any decision
+               the cut depends on (a data download, a duplicated codebase, a
+               licence, an external dependency).
+
+  Then STOP. The human approves with `approve-modules --human-ref "<their words>"`.
 """
 
 STEP15_BRIEF = """\
@@ -126,6 +148,15 @@ STEP 2  Survey the official tests of every approved module.
   within the first few smallest steps (measure it in the Step 1 native runs).
   Mark tests known a priori to be chaotic. The proposal is a hypothesis; it is
   finalized with the human after the calibration run, with taste.
+
+  How many checks: at least four suitable official tests per module (below
+  that the module is THIN and needs the human's agreement); about thirty is
+  the ideal for a module of ordinary size; preferably fewer than fifty. The
+  count is set by coverage, never by run time. Beyond the test targets, every
+  graded stage of a multi-stage test, every standalone component-suite target
+  and every official example deck the tree ships is a check; never split one
+  run by output file to pad the count. A module that would pass fifty is a
+  module-cut question for the human, not a reason to drop a suitable test.
 
   The suite budget ({budget} s of RUN time by default, source builds excluded)
   is guidance, not a cap: never leave out or merge a suitable test to fit it.
