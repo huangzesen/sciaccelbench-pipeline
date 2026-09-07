@@ -1,7 +1,7 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, decompose it into semi-independent modules with human approval, get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates what you write and never writes science, runs anything remotely, or merges.
-version: 5.11.1
+version: 5.11.2
 last_changed_at: "2026-09-06T07:35:00Z"
 ---
 
@@ -375,8 +375,13 @@ step remain available.
   changes, or redesign the checks with the PR as a priori information; every
   revision goes through lint, `plan` (which asks again only if the plan
   changed), selfcheck and `task review` again. CI fails the PR when the
-  self-validation record is stale against the contract files. The CLI keeps
-  no PR state and never merges.
+  self-validation record is stale against the contract files. Generated
+  files under `tests/`, `solution/`, `environment/` or `target/`
+  (`.pytest_cache/`, `__pycache__/`, `.ruff_cache/`, `.mypy_cache/`,
+  `.hypothesis/`, `.ipynb_checkpoints/`, `*.egg-info/`, `.DS_Store`) are
+  outside the fingerprint and refused by `selfcheck`; `status` lists them.
+  Any other file under those directories is contract, dotfile or not. The
+  CLI keeps no PR state and never merges.
 
 ## Reviewing a PR: the review mode
 
