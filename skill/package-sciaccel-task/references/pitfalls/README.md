@@ -20,6 +20,9 @@ were taken; none carries an estimate.
 | [residual-below-one-ulp](residual-below-one-ulp.md) | conservation residuals below one ulp of the total fail an altbuild by 80x; float32 dumps graded below one float32 ulp | Phantom |
 | [text-precision-caps-the-variant](text-precision-caps-the-variant.md) | a two-ulp perturbation leaves a six-figure text stream byte-identical; the wrong knob was perturbed | S4 |
 | [gkeyll-eqdsk-cwd](gkeyll-eqdsk-cwd.md) | an input loader resolves its file against the working directory and asserts | Gkeyll |
+| [pyamg-spectral-radius-global-rng](pyamg-spectral-radius-global-rng.md) | a fixed deck is not reproducible run to run, or a preconditioned Krylov probe sits 1e6x over its bound at every window; a library eigensolver starts from the global RNG | PyAMG |
+| [blas-threads-follow-the-host-core-count](blas-threads-follow-the-host-core-count.md) | one check runs 200x slower than its neighbours in a `--cpus 1` container; the BLAS pool is sized from the host's core count | any |
+| [ignored-cache-files-change-the-fingerprint](ignored-cache-files-change-the-fingerprint.md) | CI calls a fresh record stale while `git status` is clean; a gitignored `.pytest_cache/` under `tests/` is hashed | any |
 
 ## Adding one
 
