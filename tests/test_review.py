@@ -119,7 +119,14 @@ class ReviewTest(unittest.TestCase):
         self.assertIn("run time 20 s against declared 5 s", out)
         self.assertIn("GATHER, in this order", out)
         self.assertIn("PRESENT to the human, in this shape and this order", out)
-        self.assertIn("ASK for the decision", out)
+        self.assertIn("ASK for two decisions, separately.", out)
+        self.assertIn("**Coverage.** 1 checks: 1 from an official test or example, 0 custom; the skill's aim is at least 4, about 30, fewer than 50.", out)
+        self.assertIn("survey: 5 official tests recorded, 5 suitable, 0 not; 0 suitable test(s) whose proposed check is absent from the leaf; 5 suitable test(s) with no proposed check; 1 check(s) the survey did not propose: solver-check.", out)
+        self.assertIn("Speak plain English throughout.", out)
+        self.assertTrue(out.startswith("REVIEW  tasks/demo/solver  (STOP 6, the task PR)"), out[:120])
+        self.assertIn("How this review goes, and what is asked of you.", out)
+        self.assertIn("Decide the review: approve, request changes, or redesign the checks", out)
+        self.assertIn('title prefix\n  "review:"', out)
         rec = self.pipe / "demo" / "reviewer" / "task-solver.json"
         self.assertTrue(rec.is_file())
         self.assertTrue((self.pipe / "demo" / "reviewer" / "task-solver.md").is_file())
@@ -136,15 +143,23 @@ class ReviewTest(unittest.TestCase):
         proc = self.cli("review", "task", "--task", "tasks/demo/solver", "--done", "--human-ref", "approve, merge it", "--presented", str(presented))
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn('decision recorded for task tasks/demo/solver', proc.stdout)
+        self.assertIn("rerun: none approved (no --rerun-ref); nothing runs", proc.stdout)
         doc = json.loads(rec.read_text())
         self.assertEqual(doc["decision"]["human_ref"], "approve, merge it")
+        self.assertIsNone(doc["decision"]["rerun"])
         self.assertTrue(Path(doc["decision"]["presented"]).is_file())
+        proc = self.cli("review", "task", "--task", "tasks/demo/solver", "--done", "--human-ref", "approve, merge it",
+                        "--rerun-ref", "yes, rerun on the worker")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn('rerun: approved in the human\'s words: "yes, rerun on the worker"', proc.stdout)
+        doc = json.loads(rec.read_text())
+        self.assertEqual(doc["decision"]["rerun"]["human_ref"], "yes, rerun on the worker")
 
         proc = self.cli("review", "status")
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("| task tasks/demo/solver |", proc.stdout)
         self.assertIn("| decided ", proc.stdout)
-        self.assertIn("approve, merge it", proc.stdout)
+        self.assertIn("approve, merge it | rerun: yes, rerun on the worker", proc.stdout)
 
     def test_codebase_brief_measures_the_cut(self):
         modules = Path(self.tmp.name) / "modules.json"
@@ -162,7 +177,9 @@ class ReviewTest(unittest.TestCase):
         self.assertIn("| unowned | | `docs` | 1 | 1 |", out)
         self.assertIn("| docs | prose |", out)
         self.assertIn("GATHER, in this order", out)
-        self.assertIn("ASK for the decision: merge, send back, or change the cut", out)
+        self.assertIn("The review decision: merge, send back, or change the cut.", out)
+        self.assertTrue(out.startswith("REVIEW  demo  (STOP 2, the source PR)"), out[:120])
+        self.assertIn("Decide the review: merge, send back, or change the cut.", out)
         self.assertTrue((self.pipe / "demo" / "reviewer" / "codebase-demo.json").is_file())
 
     def test_codebase_upstream_diff(self):
