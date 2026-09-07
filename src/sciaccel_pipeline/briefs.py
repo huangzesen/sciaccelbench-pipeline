@@ -98,6 +98,8 @@ STEP 1  Investigate the codebase, then propose the module cut.
                licence, an external dependency).
 
   Then STOP. The human approves with `approve-modules --human-ref "<their words>"`.
+  The same brief, updated with their approval, is the body of the source PR
+  (Step 1.5); write it once.
 """
 
 STEP15_BRIEF = """\
@@ -109,6 +111,32 @@ STEP 1.5  The source PR (outside this CLI). HARD STOP.
   patched dependencies), laid out as you see fit. The one rule: both task
   Dockerfiles must build from code/{source}/ and public, well-known packages
   only. Pin, URL and licence go in task.toml.
+
+  The PR body is written for a reader who has one minute: the facts first,
+  the generated report last. In this order, as headed Markdown with tables:
+
+    What it is     two sentences on what the code simulates and who uses it;
+                   upstream URL, pin (tag or commit), licence.
+    Size           a table: language | files | lines of code, with a total
+                   and the tool that counted (cloc, or `wc -l`); what is
+                   vendored beyond upstream (bundled libraries, data tables,
+                   patches) and its size.
+    Build, tests   build system and measured native build time; the official
+                   test suites and example decks (how many, how they run);
+                   how many ran natively in the investigation and reproduced
+                   the upstream reference, to how many digits.
+    Module cut     a table, one row per module: slug | title | what it
+                   computes | owned paths | lines of code | expensive path |
+                   official tests that exercise it | approved or proposed-only;
+                   below it the human's approving words and date.
+    Shared         the shared infrastructure, listed once, with lines of code.
+    Left out       every not_packaged entry with its reason.
+    Report         the bounded Markdown report (codebase-metadata.md) pasted
+                   under a rule, when it exists; a line saying so when it
+                   does not. Then the skill revision that produced the PR.
+
+  Reviewers read the body before the tree; a body that is only the report or
+  only a link sends the PR back.
 
   Then STOP. Report the PR link and wait for the human to review and merge it.
   Nothing downstream (the test survey, the task scaffold, the checks) is
