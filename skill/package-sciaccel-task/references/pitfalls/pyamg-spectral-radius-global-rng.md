@@ -64,7 +64,7 @@ no condition-number amplification; the 1e7x first reported on the
 krylov-solvers leaf (arm64, unseeded builds, five method/problem pairs) was
 this pitfall, not the preconditioner.
 
-**How to detect it in a new codebase.** Before writing the probe, walk the
+**How to detect it.** Before writing the probe, walk the
 call graph of every setup routine the probe invokes, not only the module under
 test but the shared utility layer it delegates to, and grep it for the global
 RNG: `np.random.` (`rand`, `randn`, `random_sample`, `seed`), `rand()` /
@@ -77,7 +77,12 @@ spread. Running the same probe twice and diffing the graded file catches it in
 one command and is worth doing for every probe. A preconditioned probe whose
 `bound_fraction` does not fall as `maxiter` shrinks is this pitfall until a
 same-input control says otherwise; a BiCGStab-style irregular-convergence
-amplification does fall with the window.
+amplification does fall with the window. A stochastic driver that reseeds
+per rank is the other face of unpinned randomness, see
+[athena-turbulence-rng-per-rank](athena-turbulence-rng-per-rank.md); an
+eigensolver whose distance does not scale with the perturbation even when
+seeded is
+[meep-mpb-eigensolver-two-state](meep-mpb-eigensolver-two-state.md).
 
 **What to do in the check.** Pin the stream in the probe itself, from the
 check's own initial condition (`np.random.seed(int(cfg["seed"]))`), immediately

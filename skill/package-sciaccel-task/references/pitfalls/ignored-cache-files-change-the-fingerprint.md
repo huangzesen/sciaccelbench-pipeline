@@ -31,7 +31,7 @@ carry.
 `git status --porcelain` on the leaf was empty in both. Cost: one full
 selfcheck rerun, about 60 minutes of worker time for three solves.
 
-**How to detect it in a new codebase.** Before the final selfcheck, run
+**How to detect it.** Before the final selfcheck, run
 `git status --ignored --porcelain tasks/<id>/<slug>` and expect nothing;
 `git ls-files tasks/<id>/<slug>/tests | wc -l` against
 `find tasks/<id>/<slug>/tests -type f | wc -l` is the same check in two

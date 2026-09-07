@@ -36,7 +36,7 @@ pinned x86 run and an unpinned native arm64 run both give
 `max|observable| = 1.3975599014401034` over 307200 values. These numbers are
 for that worker and image, not a constant of OpenBLAS.
 
-**How to detect it in a new codebase.** Compare each check's run time (build
+**How to detect it.** Compare each check's run time (build
 excluded) with its neighbours in the first selfcheck record; a single outlier
 the probe's arithmetic does not explain is the signature. Confirm by running
 the probe natively, and once in the container with the thread variables set
