@@ -44,6 +44,7 @@ class ExportTest(unittest.TestCase):
         self.assertIn("templates/briefing.md", manifest["files"])
         self.assertIn("references/pitfalls/README.md", manifest["files"])
         self.assertIn("references/pitfalls/s4-gvector-selection-fma.md", manifest["files"])
+        self.assertIn("references/pitfalls/pyamg-spectral-radius-global-rng.md", manifest["files"])
         # No templates inside the vendored package: the wrapper uses the skill copy.
         self.assertFalse(any(name.startswith("scripts/_vendor/sciaccel_pipeline/templates/")
                              for name in manifest["files"]))
