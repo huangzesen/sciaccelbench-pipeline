@@ -35,6 +35,7 @@ reference, 24 streams by 500 nodes, `tDel` 0.01 day, 1 day):
 |---|---|---|
 | official `shock.cfg` (90-degree cone) | 12 of 12,000, indices 105, 108, 117, 123, 129, 144, 156 | four streams on faces 2 and 5 |
 | same deck with `idealShockWidth=0` (spherical) | 75 of 12,000, 14 distinct indices, every one a multiple of 3 | all 24 streams |
+| same deck with `idealShockSpeed=1210` km/s (ratio 4.033, the tie broken) | 0 of 12,000; whole flux array within 2e-16 of the peak, tail cells within 2.4e-13 relative | none |
 
 | graded quantity, official deck | `-O1` versus `-O3` | two-ULP `lamo` variant |
 |---|---|---|
@@ -66,8 +67,12 @@ many nodes: per-stream and per-observer total intensity, the low-energy
 spectrum summed over all nodes, and the slope of the accelerated tail, each
 bounded at about ten times its measured altbuild floor. Individual tail bins
 and per-node values on a shock deck are not gradeable at this pin. A custom
-deck can avoid the tie by choosing a shock speed that is not a small rational
-multiple of the wind speed, and must then measure again.
+deck avoids the tie by choosing a shock speed whose ratio to the wind speed,
+in lowest terms `p/q`, has `q` larger than the number of steps in the run
+(node `j` meets the front at step `n = q j/(p-q)`, an integer only when `q`
+divides `n`); 1201 km/s against 300 km/s (`q = 300`) has no tie in a
+100-step run, and the 1210 km/s measurement above shows what breaking the tie
+buys. Measure the new deck on both builds before trusting it.
 
 **Where measured.** aitofound/ScienceAccelBench PR #518
 (`tasks/open-eprem/focused-particle-transport`), curator's revision on the
