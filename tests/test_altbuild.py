@@ -121,8 +121,36 @@ class AltbuildTest(ReviewTest):
         sv.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
         present = self.cli("task", "review", "--task", "tasks/demo/solver", "--present")
         self.assertEqual(present.returncode, 0, present.stderr)
-        self.assertIn("altbuild measured on 1 of 1 checks (1 pass, 1 bit-identical)", present.stdout)
+        self.assertIn("altbuild measured on 1 of 1 checks (1 pass, 1 bit-identical, 0 identical in every graded value while an ungraded file differs)", present.stdout)
         self.assertIn("record fresh", present.stdout)
+
+    def test_presentation_reports_graded_identity_next_to_byte_identity(self):
+        """Issue #552: an ungraded sidecar (a timestamp, build metadata) makes the byte comparison false while every graded
+        value is the same; the record and the table say so instead of reporting the altbuild as active."""
+        self.declare_in_run_sh()
+        self.declare_in_rubric()
+        p = self.check_path("rubric.json")
+        rb = json.loads(p.read_text(encoding="utf-8"))
+        rb["evidence"]["floor"] = 0.0
+        rb["evidence"]["altbuild"] = {"what": "IEEE -O0 build of the same source", "distance": 0.0, "identical": False, "graded_identical": True,
+                                      "passed": True, "reason": "all graded values within bound", "at": "2026-09-05T00:00:00Z"}
+        p.write_text(json.dumps(rb, indent=2) + "\n", encoding="utf-8")
+        sv = self.leaf / "comment" / "pipeline" / "self-validation.json"
+        rec = json.loads(sv.read_text(encoding="utf-8"))
+        rec["altbuild"] = {"declared": ["solver-check"], "not_declared": [], "checks": {"solver-check": rb["evidence"]["altbuild"]}}
+        # the nominal-versus-variant pair the same way: distance 0 from the validator, bytes differ
+        rec["reward"]["checks"]["solver-check"] = {"passed": True, "identical": False, "distance": 0.0}
+        from sciaccel_pipeline.util import contract_fingerprint
+        rec["contract_fingerprint"] = contract_fingerprint(self.leaf)
+        sv.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        present = self.cli("task", "review", "--task", "tasks/demo/solver", "--present")
+        self.assertEqual(present.returncode, 0, present.stderr)
+        self.assertIn("altbuild measured on 1 of 1 checks (1 pass, 0 bit-identical, 1 identical in every graded value while an ungraded file differs)", present.stdout)
+        row = [ln for ln in present.stdout.splitlines() if ln.startswith("| solver-check")][0]
+        self.assertTrue(row.endswith("| graded |"), row)
+        review = self.cli("review", "task", "--task", "tasks/demo/solver", "--base", "HEAD")
+        self.assertEqual(review.returncode, 0, review.stderr)
+        self.assertIn("every graded value identical while an ungraded file differs: variant inactive", review.stdout)
 
 
 del ReviewTest  # keep pytest from collecting the base class's tests a second time from this module
