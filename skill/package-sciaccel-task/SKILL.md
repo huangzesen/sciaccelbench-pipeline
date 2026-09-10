@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
-description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, decompose it into semi-independent modules with human approval, get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates what you write and never writes science, runs anything remotely, or merges.
+description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, decide whether it is one whole-codebase module or a few repository-like modules with human approval, get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
 version: 5.11.10
-last_changed_at: "2026-09-06T07:35:00Z"
+last_changed_at: "2026-09-09T23:54:00Z"
 ---
 
 # Package a ScienceAccelBench task
@@ -35,6 +35,36 @@ priori information. A green selfcheck is not a finished task.
 A task is an RL environment. Its reward is a suite of **checks** derived from
 the codebase's official tests that a coding agent must keep passing while it
 carries out a generic statement: port the module to every active target.
+
+**A module is a repository-like scientific and task unit inside the codebase,
+not merely a cluster of related code.** Start from one whole-codebase module.
+Split only when every candidate would still look like an independent package or
+repository if the shared infrastructure were treated as a common dependency.
+Each candidate needs all of these:
+
+- a complete scientific responsibility and a coherent input/output contract;
+- an identifiable entry point and execution path;
+- substantial implementation that it owns, rather than a thin wrapper around
+  a sibling module or third-party dependency;
+- a direct official-test or official-example surface; and
+- enough independent behaviour to support its own task and reward contract
+  without requiring the agent to redesign sibling modules at the same time.
+
+Substantial shared infrastructure is allowed. Common grids, meshes, I/O, build
+systems, time integrators and base solver/framework code do not make otherwise
+independent modules one module. PLUTO's HD, MHD and RHD regimes are the positive
+example: they share much of the solver stack, but each has its own equations and
+state, configuration, official problems and task objective. Record the shared
+layer once and judge what remains on each side of it; do not use a shared-lines
+or cross-call threshold.
+
+Algorithm stages in one pipeline, consecutive stages of one end-to-end
+workflow, alternative methods or statistics over the same substrate, backend
+choices, directories and check families are not modules by themselves. A large
+codebase, many tests, different physics labels or one expensive routine are
+reasons to investigate a split, not evidence that the split is repository-like.
+When the evidence is mixed, keep one whole-codebase module and use subsystems or
+check families inside it.
 
 **Acceleration** is wider than a GPU port. It means two things at once:
 making the code run faster, and making scientific discovery faster by
@@ -217,19 +247,26 @@ step remain available.
   formats and non-determinism; they inform the module cut and become the
   measured runtimes of the survey. Docker starts only after STOP 3.
 - **STOP 1 is a brief, not two files.** Present the module cut as one page
-  the human reads in a minute, drawn from `overview.md` and `modules.json`:
-  the codebase (what it simulates in two sentences, languages with lines of
-  code and the tool that counted them, licence, build system and measured
-  build time), the tests (suites and example decks found, how they run, how
-  many ran natively and reproduced the upstream reference), one row per
-  module (slug, title, what it computes, owned paths, lines of code,
-  expensive path, official tests that exercise it, hazards), the shared
-  infrastructure once with its lines of code, everything left out with its
-  reason, and the ask: approve all, a subset, or send it back, plus any
-  decision the cut depends on (a data download, a duplicated codebase, a
-  licence, an external dependency). `propose-modules` prints the module
-  table; the brief is yours to write, and the same brief, updated with the
-  approval, becomes the body of the source PR.
+  the human reads in a minute, drawn from `overview.md` and `modules.json`.
+  Begin with the proposed choice: one whole-codebase module, or multiple
+  repository-like modules. Show the codebase (what it simulates in two
+  sentences, languages with lines of code and the tool that counted them,
+  licence, build system and measured build time) and the tests (suites and
+  example decks found, how they run, how many ran natively and reproduced the
+  upstream reference). Then give one row per module: its scientific and I/O
+  contract, entry point, owned paths and lines of code, expensive path, direct
+  official tests, independent task/reward boundary, hazards, and the concrete
+  reason it is repository-like rather than a stage, method or check family.
+  List the shared infrastructure once with its role and lines of code; sharing
+  it is allowed and is not scored by a threshold. State everything left out
+  with its reason. For a multi-module cut, ask first whether every row is a
+  genuinely repository-like unit; if not, merge the candidates into one
+  whole-codebase module. Then ask the human to approve all, a subset, or send
+  the cut back, plus any decision it depends on (a data download, duplicated
+  codebase, licence or external dependency). `propose-modules` prints the
+  structural module table; the independence judgment is yours to evidence and
+  the human's to decide. The same brief, updated with the approval, becomes
+  the body of the source PR.
 - **The source PR body is the brief, facts first, report last.** A reviewer
   has one minute; the body is headed Markdown with tables, in this order:
   what it is (two sentences on what the code simulates and who uses it,
@@ -238,10 +275,12 @@ step remain available.
   its size); build and tests (build system, measured native build time, the
   official suites and example decks with how they run, how many ran natively
   and reproduced the upstream reference and to how many digits); the module
-  cut (one row per module: slug, title, what it computes, owned paths, lines
-  of code, expensive path, official tests that exercise it, approved or
-  proposed-only, then the human's approving words and date); shared
-  infrastructure once with lines of code; everything left out with its
+  cut (whether it is whole-codebase or multi-module, then one row per module:
+  slug, scientific and I/O contract, entry point, owned paths and lines of
+  code, expensive path, direct official tests, independent task/reward
+  boundary, why it is repository-like, approved or proposed-only, then the
+  human's approving words and date); shared infrastructure once with its role
+  and lines of code; everything left out with its
   reason; and last the bounded Markdown report under a rule when it exists,
   or a line saying it does not, followed by the skill revision. A body that
   is only the report or only a link is sent back.
