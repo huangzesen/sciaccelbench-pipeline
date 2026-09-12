@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, decide whether it is one whole-codebase module or a few repository-like modules with human approval, get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
-version: 5.11.10
-last_changed_at: "2026-09-09T23:54:00Z"
+version: 5.11.11
+last_changed_at: "2026-09-12T00:35:00-07:00"
 ---
 
 # Package a ScienceAccelBench task
@@ -135,8 +135,8 @@ write the science into the files it stamps. State lives under
 `~/.sciaccel_pipeline/<codebase>/` (override `SAB_PIPE_DIR`) and is never
 committed; what a reviewer needs is copied into the leaf under
 `comment/pipeline/`. The Step 1.5 report is the exception: its canonical JSON,
-self-contained HTML, and generated Markdown live in the source PR at
-`codebase-reports/<id>/`, outside `code/<source>/`.
+self-contained HTML, generated Markdown, and hand-maintained codebase bibliography
+live in the source PR at `codebase-reports/<id>/`, outside `code/<source>/`.
 
 ```bash
 # Step 0: the briefing, shown to the human before anything else
@@ -221,6 +221,13 @@ checked; local private paths, secrets, raw logs, task tolerances/rewards/speedup
 benchmark results, merge-readiness claims and Step-2 pass-policy/suitability are not
 published.
 
+**Maintain one codebase bibliography.** `codebase report` creates the non-overwriting
+starter `codebase-reports/<id>/references.bib` beside the generated explainers. Fill it
+with every scientific paper or software reference used by the codebase before the
+source PR is reviewed. Every later task PR must add its references to the same file
+before review, including while that task PR is still pending. Do not put a separate
+bibliography in a task leaf or wait until task merge to record its references.
+
 **Present it; never produce it silently.** After every report run, open or attach the
 self-contained HTML and paste the bounded Markdown summary in the same human channel,
 including its unknowns and warnings, before or with the source-PR link. If best effort
@@ -288,8 +295,9 @@ step remain available.
   source PR and stop: report the link and wait for the human to review and
   merge it. Do not write the test survey, scaffold a task or author checks on
   the same branch while the source PR is open. The task PR is opened on a
-  fresh branch from the merged main and contains only the leaf and the
-  registry, so it builds on source that is already in the repository. The
+  fresh branch from the merged main and contains only the leaf, the registry, and its
+  required update to `codebase-reports/<id>/references.bib`, so it builds on source
+  that is already in the repository. The
   human, and only the human, may lift the stop: with their words recorded
   through `--allow-unmerged-source --human-ref`, Steps 2 and 3 continue on the
   unmerged tree under a warning; the task PR must then not merge before the
