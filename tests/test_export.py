@@ -1,5 +1,6 @@
 """unittest of the deterministic export and the downstream verifier (stdlib only)."""
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -70,6 +71,20 @@ class ExportTest(unittest.TestCase):
         proc = run([str(EXPORTER), "--dest", str(self.dest), "--revision", "abc123"], REPO)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(self.read_manifest()["upstream_revision"], "abc123")
+
+    def test_wrapper_recommends_whole_codebase_schema(self):
+        self.assertEqual(self.export().returncode, 0)
+        source = self.dest / "code" / "demo"
+        source.mkdir(parents=True)
+        env = dict(os.environ, SAB_PIPE_DIR=str(Path(self.tmp.name) / "pipe"))
+        proc = subprocess.run([sys.executable, str(self.skill / "scripts" / "sab.py"),
+                               "codebase", "init", "--codebase", "demo", "--code-path", str(source)],
+                              cwd=str(self.dest), env=env, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("one whole-codebase module", proc.stdout)
+        self.assertIn('"slug": "demo"', proc.stdout)
+        self.assertIn('"paths": ["."]', proc.stdout)
+        self.assertIn("different physics", proc.stdout)
 
     def test_wrapper_help_matches_canonical_help(self):
         """The vendored wrapper must speak byte-for-byte like the canonical CLI under the same prog."""

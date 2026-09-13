@@ -11,8 +11,8 @@ REPO = Path(__file__).resolve().parents[1]
 
 MODULES = {
     "codebase": "demo",
-    "shared_infrastructure": ["shared/"],
-    "modules": [{"slug": "solver", "title": "The solver", "paths": ["solver/"],
+    "shared_infrastructure": [],
+    "modules": [{"slug": "demo", "title": "The whole codebase", "paths": ["."],
                  "entrypoints": ["run"], "expensive_path": "time stepping",
                  "rationale": "one physics", "excluded": [], "hazards": []}],
     "not_packaged": [],
@@ -60,7 +60,7 @@ class FlowTest(unittest.TestCase):
 
         proc = self.cli("codebase", "approve-modules", "--codebase", "demo", "--human-ref", "go ahead")
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("approved 1 module(s): ['solver']", proc.stdout)
+        self.assertIn("approved 1 module(s): ['demo']", proc.stdout)
         self.assertTrue((self.pipe / "demo" / "codebase-metadata.json").is_file())
 
         # Step 1.5 refusal: survey-tests refuses while the source PR is unmerged.
@@ -78,6 +78,69 @@ class FlowTest(unittest.TestCase):
         proc = self.cli("codebase", "survey-tests", "--codebase", "demo", "--allow-unmerged-source")
         self.assertEqual(proc.returncode, 1)
         self.assertIn("--allow-unmerged-source needs --human-ref", proc.stderr)
+
+    def test_whole_codebase_prompt_survey_and_scaffold(self):
+        source = self.root / "code" / "demo"
+        (source / "examples").mkdir(parents=True)
+        (source / "examples" / "one.txt").write_text("official example fixture\n")
+        (source / "sibling").mkdir()
+        (source / "sibling" / "source.txt").write_text("whole-root sentinel\n")
+        proc = self.cli("codebase", "init", "--codebase", "demo", "--code-path", str(source),
+                        "--repo-url", "https://example.org/demo", "--pin", "0" * 40,
+                        "--license", "MIT", "--language", "Python", "--owner", "fixture",
+                        "--arxiv", "physics.flu-dyn")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("one whole-codebase module", proc.stdout)
+        self.assertIn('"slug": "demo"', proc.stdout)
+        self.assertIn('"paths": ["."]', proc.stdout)
+        self.assertIn("different physics", proc.stdout)
+        self.assertIn("not a reason to split", proc.stdout)
+        self.assertIn("naming exception in rationale", proc.stdout)
+        (self.pipe / "demo" / "modules.json").write_text(json.dumps(MODULES))
+        proc = self.cli("codebase", "propose-modules", "--codebase", "demo")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        proc = self.cli("codebase", "approve-modules", "--codebase", "demo", "--human-ref", "fixture approval")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        bypass = ("--allow-unmerged-source", "--human-ref", "fixture bypass")
+        proc = self.cli("codebase", "survey-tests", "--codebase", "demo", *bypass)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("no preset check-count target", proc.stdout)
+        self.assertIn("non-exhaustiveness alone is not a defect", proc.stdout)
+        self.assertNotRegex(proc.stdout, r"(?i)10\s*[-–]\s*30|at least four|about thirty|fewer than fifty")
+        test = {"id": "one", "module": "demo", "path": "examples/one.txt", "policy": "pointwise",
+                "chaotic": False, "exercises": "whole-codebase fixture", "why": "one complete official example",
+                "resources": {"cpus": 1, "memory_gb": 1, "mpi_ranks": 1}, "upstream_runtime_s": 1,
+                "runtime_measured": True, "suitable": True, "proposed_check": "one"}
+        (self.pipe / "demo" / "tests.json").write_text(json.dumps(
+            {"codebase": "demo", "how_tests_are_run": "fixture only", "tests": [test]}))
+        proc = self.cli("codebase", "survey-tests", "--codebase", "demo", *bypass)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertNotIn("THIN", proc.stdout)
+        self.assertIn("--module demo", proc.stdout)
+        proc = self.cli("task", "scaffold", "--codebase", "demo", "--module", "demo", *bypass)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        leaf = self.root / "tasks" / "demo" / "demo"
+        self.assertTrue((leaf / "task.toml").is_file())
+        module = json.loads((leaf / "comment" / "pipeline" / "module.json").read_text())["module"]
+        self.assertEqual(module["slug"], "demo")
+        self.assertEqual(module["paths"], ["."])
+        for dockerfile in ("environment/Dockerfile", "tests/Dockerfile"):
+            self.assertIn("COPY code/demo/ /workspace/code/", (leaf / dockerfile).read_text())
+        self.assertEqual((source / "sibling" / "source.txt").read_text(), "whole-root sentinel\n")
+
+    def test_legacy_slug_and_real_multi_module_shapes_stay_compatible(self):
+        self.cli("codebase", "init", "--codebase", "demo", "--code-path", str(self.code))
+        # Historical subsystem identity remains accepted, not relabeled as whole-codebase.
+        legacy = json.loads(json.dumps(MODULES))
+        legacy["modules"][0].update(slug="solver", paths=["solver/"], rationale="legacy approved identity")
+        multiple = json.loads(json.dumps(legacy))
+        second = dict(multiple["modules"][0], slug="other-physics", paths=["shared/"],
+                      rationale="independent equations and scientific I/O")
+        multiple["modules"].append(second)
+        for proposal in (legacy, multiple):
+            (self.pipe / "demo" / "modules.json").write_text(json.dumps(proposal))
+            proc = self.cli("codebase", "propose-modules", "--codebase", "demo")
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
     def test_status_without_state(self):
         proc = self.cli("status")

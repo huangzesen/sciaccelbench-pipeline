@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, decide whether it is one whole-codebase module or a few repository-like modules with human approval, get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
-version: 5.11.11
-last_changed_at: "2026-09-12T00:35:00-07:00"
+version: 5.11.12
+last_changed_at: "2026-09-13T02:30:00Z"
 ---
 
 # Package a ScienceAccelBench task
@@ -37,9 +37,19 @@ the codebase's official tests that a coding agent must keep passing while it
 carries out a generic statement: port the module to every active target.
 
 **A module is a repository-like scientific and task unit inside the codebase,
-not merely a cluster of related code.** Start from one whole-codebase module.
-Split only when every candidate would still look like an independent package or
-repository if the shared infrastructure were treated as a common dependency.
+not merely a cluster of related code.** Start from one whole-codebase module:
+the entire codebase source root is vendored as one unit and its module scope is
+`paths: ["."]`, not an arbitrary internal subsystem relabeled as the codebase.
+Use the canonical codebase name normalized to lower-kebab-case as the strong
+default module/task slug (for example `tasks/demo/demo/`). A genuine narrow
+naming exception belongs in the rationale; do not invent a subsystem identity
+or rename existing tasks to satisfy this guidance. The CLI preserves approved
+slugs and validates structure, not scientific independence or naming rationale.
+
+Use multiple modules only for genuinely separable parts doing independent work
+with different physics. Split only when every candidate would still look like
+an independent package or repository if the shared infrastructure were treated
+as a common dependency. Size or manageability alone is not a reason to split.
 Each candidate needs all of these:
 
 - a complete scientific responsibility and a coherent input/output contract;
@@ -83,8 +93,10 @@ and the check suite is what carries over to them.
 **Official tests** are the codebase's own test suites and its standard
 example problems alike: an upstream example is an official test even when
 upstream ships no reference output for it (the pinned build generates the
-check's reference; the example's physics anchors it). Only a check backed by
-neither is `custom`.
+check's reference; the example's physics anchors it). Coverage ought to be
+exhaustive, but this is an aim, not a zero-exclusion requirement: explicit
+justified exclusions are allowed, and non-exhaustiveness alone is not a defect.
+Only a check backed by neither is `custom`.
 A **check** is one **test** (`run.sh`: fixed inputs in, graded files out)
 plus one **pass policy** (`rubric.json` + `validate.py`: the scientific
 **tolerance** under which two runs are equivalent). There are exactly two
@@ -380,26 +392,27 @@ step remain available.
 - **Propose, then discuss.** The policy type of every check is proposed from
   the physics, agreed in one shot when obvious, and finalized check by check
   from the nominal-versus-variant runs. Bring the measurements; the human
-  decides. Any module packaged THIN (fewer than four suitable official
-  tests) or with custom checks needs the human's explicit agreement.
-- **How many checks.** At least four suitable official tests per module;
-  about thirty is the ideal for a module of ordinary size; preferably fewer
-  than fifty. The count is set by coverage, never by run time: every
-  suitable official test, every graded stage of a multi-stage test, every
-  standalone component-suite target and every official example deck the
-  tree ships is a check, and one run is never split by output file to pad
-  the count. A module that would pass fifty is a module-cut question for the
-  human at STOP 1 or STOP 4, not a reason to drop a suitable test.
-- **The budget is guidance, counts run time only, and never limits the
-  checks.** `suite_budget_s` (default 900) is the run time of all checks on
+  decides. Custom checks need the human's explicit agreement; bring them
+  substantial coverage concerns and the rationale for exclusions, not a
+  count-only THIN label.
+- **How many checks.** There is no preset check-count target. Let justified
+  official-test and example coverage, task scope, runnable scientific value,
+  explicit exclusions and practical run/cost trade-offs determine the count.
+  Coverage ought to be exhaustive; this is an aim, not a requirement: document exclusions and review
+  substantial omissions, but non-exhaustiveness alone is not a defect. Survey
+  graded stages, standalone component-suite targets and official example decks
+  as well as test targets. Keep meaningful independent checks; never split one
+  run by output file to pad a count or split a module to meet a count ceiling.
+- **The default budget is guidance, not a check-count cap.** `suite_budget_s` (default 900) is the run time of all checks on
   one initial condition under the declared resources, with every check's
   source build excluded: `run.sh` prints `SAB_BUILD_SECONDS=<n>` after its
   build, the driver records it, and `selfcheck` reports run time and build
   time separately. `expected_runtime_s` is run time without the build. The
-  fifteen minutes are guidance for fast iteration, not a cap: do NOT leave
-  out or merge a suitable official test to fit the default, and do not cut
-  a window below what its physics needs for that reason alone. When the run
-  time exceeds the default, exceeding it is fine; bring the human the
+  fifteen minutes are guidance for fast iteration, not a cap: do not omit or
+  merge a valuable official test merely to fit the default, or cut a window
+  below what its physics needs. Explicit scientific or practical exclusions
+  remain allowed when justified; the default budget alone is not that warrant.
+  When the run time exceeds the default, exceeding it is fine; bring the human the
   numbers and a strategy at STOP 3 (raise the task's `suite_budget_s`,
   shorten windows or resolution through the knobs, more cores) and let them
   choose. Every check exposes the settings that scale its runtime as knobs
@@ -532,9 +545,9 @@ The task brief presents the two tables first, then answers eight questions in
 order, each with one verdict word (SOUND, THIN or BROKEN) and its evidence:
 coverage and provenance (how many checks, upstream or custom, what official
 test or example each comes from, what suitable tests have no check and why,
-the count against the aim of four, thirty, fifty, the narrative behind the
-cut); what is graded (per check the physical quantity and the routine that
-produces it, and whether anything random or compiler sensitive sits in its
+the justified breadth and runnable scientific value, explicit exclusions and
+the narrative behind the cut; non-exhaustiveness alone is not a defect); what
+is graded (per check the physical quantity and the routine that produces it, and whether anything random or compiler sensitive sits in its
 path); pass policy and tolerance (per check the policy, bound, spread, floor
 and margin, too loose meaning a named fault would pass, too tight meaning a
 named mechanism would fail a legitimate port, then the landscape of what a
@@ -542,8 +555,10 @@ port can change); calibration validity (the variant moves every stream, the
 spread is from the target architecture, the altbuild changes something); the
 solver's side (what it sees, whether the acceleration target is real, what
 leaks); record integrity; blind spots; and the numbered decision table last.
-The codebase brief asks the same of the cut: official tests per module against
-the count aim, and the numerical landscape read from the source.
+The codebase brief asks the same of the cut: official tests and examples per
+module, justified coverage and practical exclusions, and the numerical
+landscape read from the source. SOUND, THIN and BROKEN are evidence-backed
+human judgments, never inferred from the number of checks.
 
 Rules that hold while reviewing:
 

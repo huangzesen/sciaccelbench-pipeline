@@ -19,6 +19,7 @@ FILL = re.compile(r"<FILL:(?:[^<>]|<[^<>]*>)*>")
 TOKENS = {"TASK": "solver", "CODEBASE": "demo", "SOURCE": "demo", "MODULE_TITLE": "The solver", "CODEBASE_TITLE": "Demo",
           "SHORT_TITLE": "Demo solver", "REPO_URL": "https://example.org/demo", "REPO_COMMIT": "0123456789abcdef", "LICENSE": "MIT",
           "LANGUAGE_FROM": "Fortran", "DOMAIN": "Fluid dynamics", "OWNER": "someone", "ARXIV": '"physics.flu-dyn"', "CPUS": "2", "MEMORY_GB": "4.0"}
+# Historical subsystem cut: compatibility/attribution fixture, not the new whole-codebase default.
 MODULES = {"codebase": "demo", "shared_infrastructure": ["shared/"],
            "modules": [{"slug": "solver", "title": "The solver", "paths": ["solver/"], "entrypoints": ["run"], "expensive_path": "stepping",
                         "rationale": "one physics", "excluded": [], "hazards": []}],
@@ -112,15 +113,17 @@ class ReviewTest(unittest.TestCase):
         self.assertIn("# Task review: tasks/demo/solver at ", out)
         self.assertIn("tree unchanged since the head: yes", out)
         self.assertIn("| solver-check (step.f90) | pointwise; acceleration |", out)
-        self.assertIn("**Lint.** 0 error(s), 1 warning(s)", out)
-        self.assertIn("warn  1 check(s): fewer than 4 is thin", out)
+        self.assertIn("**Lint.** PASS", out)
+        self.assertNotRegex(out, r"fewer than [0-9]+ is thin|THIN \([0-9]+ suitable")
         self.assertIn("**validate-harbor.** PASS", out)
         self.assertIn("**Record.** passed at 2026-09-04T10:20:00Z, fresh", out)
         self.assertIn("run time 20 s against declared 5 s", out)
         self.assertIn("GATHER, in this order", out)
         self.assertIn("PRESENT to the human, in this shape and this order", out)
         self.assertIn("ASK for two decisions, separately.", out)
-        self.assertIn("**Coverage.** 1 checks: 1 from an official test or example, 0 custom; the skill's aim is at least 4, about 30, fewer than 50.", out)
+        self.assertIn("**Coverage.** 1 checks: 1 from an official test or example, 0 custom; assess official coverage, task scope and justified exclusions, not a count target.", out)
+        self.assertNotRegex(out, r"(?i)10\s*[-–]\s*30|at least four|about (?:thirty|30)|fewer than (?:fifty|50)")
+        self.assertIn("non-exhaustiveness alone is not a defect", out)
         self.assertIn("survey: 5 official tests recorded, 5 suitable, 0 not; 0 suitable test(s) whose proposed check is absent from the leaf; 5 suitable test(s) with no proposed check; 1 check(s) the survey did not propose: solver-check.", out)
         self.assertIn("Speak plain English throughout.", out)
         self.assertTrue(out.startswith("REVIEW  tasks/demo/solver  (STOP 6, the task PR)"), out[:120])
@@ -177,6 +180,9 @@ class ReviewTest(unittest.TestCase):
         self.assertIn("| unowned | | `docs` | 1 | 1 |", out)
         self.assertIn("| docs | prose |", out)
         self.assertIn("GATHER, in this order", out)
+        self.assertIn("single-module codebase", out)
+        self.assertIn("canonical codebase slug", out)
+        self.assertNotRegex(out, r"(?i)at least four|about thirty|fewer than fifty")
         self.assertIn("The review decision: merge, send back, or change the cut.", out)
         self.assertTrue(out.startswith("REVIEW  demo  (STOP 2, the source PR)"), out[:120])
         self.assertIn("Decide the review: merge, send back, or change the cut.", out)
