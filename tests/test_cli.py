@@ -38,6 +38,16 @@ class HelpTreeTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("{codebase,task,status}", proc.stdout)
 
+    def test_identity_help_names_whole_codebase_default(self):
+        init = run_cli("codebase", "init", "--help")
+        self.assertEqual(init.returncode, 0, init.stderr)
+        self.assertIn("canonical codebase name", init.stdout)
+        self.assertIn("whole codebase source root", init.stdout)
+        scaffold = run_cli("task", "scaffold", "--help")
+        self.assertEqual(scaffold.returncode, 0, scaffold.stderr)
+        self.assertIn("whole-codebase module", scaffold.stdout)
+        self.assertNotRegex(init.stdout + scaffold.stdout, r"(?i)10\s*[-–]\s*30|about thirty|fewer than fifty")
+
     def test_missing_mode_fails(self):
         proc = run_cli()
         self.assertEqual(proc.returncode, 2)
