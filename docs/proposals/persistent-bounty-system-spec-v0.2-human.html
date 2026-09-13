@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>ScienceAccelBench Persistent Bounties — Decision Brief v0.2</title>
+  <style>
+    :root {
+      --navy: #102a43;
+      --navy-2: #183b56;
+      --blue: #1769aa;
+      --blue-soft: #eaf4fb;
+      --teal: #087f6a;
+      --teal-soft: #e8f7f3;
+      --gold: #aa6b08;
+      --gold-soft: #fff6df;
+      --red: #a33a35;
+      --red-soft: #fff0ee;
+      --violet: #6b4ba3;
+      --violet-soft: #f4effb;
+      --ink: #172b3a;
+      --muted: #5b6d7c;
+      --line: #d9e3ea;
+      --line-strong: #bccbd6;
+      --paper: #ffffff;
+      --canvas: #f2f6f8;
+      --shadow: 0 18px 50px rgba(16, 42, 67, .10);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 3%, rgba(23,105,170,.09), transparent 24rem),
+        radial-gradient(circle at 95% 0%, rgba(8,127,106,.08), transparent 25rem),
+        var(--canvas);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.62;
+    }
+
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: #0d4f85; }
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+    code { padding: .10rem .32rem; border-radius: 5px; background: #edf2f5; color: #24445a; white-space: nowrap; }
+    pre {
+      margin: 1rem 0;
+      padding: 1.1rem 1.2rem;
+      overflow: auto;
+      border: 1px solid #203f55;
+      border-radius: 13px;
+      background: #102a3b;
+      color: #edf7fb;
+      font-size: .88rem;
+      line-height: 1.52;
+      white-space: pre;
+    }
+    pre code { padding: 0; background: none; color: inherit; white-space: inherit; }
+
+    .topbar {
+      position: relative;
+      z-index: 1;
+      border-bottom: 1px solid rgba(188,203,214,.8);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+    }
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      min-height: 56px;
+    }
+    .brand { font-weight: 800; letter-spacing: -.02em; color: var(--navy); }
+    .nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem; }
+    .nav a {
+      padding: .36rem .58rem;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .84rem;
+      font-weight: 700;
+    }
+    .nav a:hover { background: var(--blue-soft); color: var(--navy); }
+
+    main { width: min(1180px, calc(100% - 32px)); margin: 22px auto 72px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(30px, 4.2vw, 48px);
+      border-radius: 28px;
+      background: linear-gradient(135deg, #0e2b40 0%, #174d68 58%, #0a766a 120%);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      bottom: -130px;
+      width: 360px;
+      height: 360px;
+      border: 55px solid rgba(255,255,255,.07);
+      border-radius: 50%;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .38rem .7rem;
+      border: 1px solid rgba(255,255,255,.32);
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      color: #e9fbf7;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 880px;
+      margin: .8rem 0 .65rem;
+      color: #fff;
+      font-size: clamp(2.15rem, 4.3vw, 3.7rem);
+      line-height: 1.04;
+      letter-spacing: -.055em;
+    }
+    .hero .lede {
+      max-width: 800px;
+      margin: 0;
+      color: #e8f2f6;
+      font-size: clamp(1.05rem, 2vw, 1.34rem);
+      line-height: 1.55;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .7rem 1.4rem;
+      margin-top: 1.2rem;
+      color: #cfe0e8;
+      font-size: .88rem;
+    }
+    .hero-meta strong { color: #fff; }
+
+    .decision-banner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1.2rem;
+      align-items: center;
+      margin-top: 1.25rem;
+      padding: .95rem 1.05rem;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 16px;
+      background: rgba(255,255,255,.11);
+    }
+    .decision-banner p { margin: 0; color: #f4fbfd; }
+    .reply-chip {
+      padding: .62rem .8rem;
+      border-left: 3px solid #b7eee1;
+      border-radius: 7px;
+      background: rgba(6,31,43,.32);
+      color: #fff;
+      font-size: .84rem;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+    .reply-chip small { display: block; color: #bfe8df; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .reply-chip code { padding: 0; background: none; color: #fff; font-weight: 800; }
+
+    section { scroll-margin-top: 76px; }
+    .section { margin-top: 46px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 1.35rem;
+    }
+    .section-no {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--navy);
+      color: white;
+      font-weight: 900;
+      box-shadow: 0 7px 18px rgba(16,42,67,.18);
+    }
+    h2 { margin: 0; color: var(--navy); font-size: clamp(1.55rem, 3vw, 2.2rem); line-height: 1.15; letter-spacing: -.035em; }
+    h3 { margin: 0 0 .55rem; color: var(--navy-2); font-size: 1.14rem; line-height: 1.3; }
+    .section-head p { margin: .45rem 0 0; max-width: 790px; color: var(--muted); }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .card {
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 8px 25px rgba(16,42,67,.055);
+    }
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+    .card p { margin: .5rem 0; }
+    .icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      margin-bottom: .9rem;
+      border-radius: 12px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 1.25rem;
+      font-weight: 900;
+    }
+    .muted { color: var(--muted); }
+
+    .plain-rule {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 9px 28px rgba(16,42,67,.06);
+    }
+    .plain-rule > div { padding: 1.45rem; }
+    .plain-rule > div + div { border-left: 1px solid var(--line); }
+    .plain-rule .yes { background: var(--teal-soft); }
+    .plain-rule .no { background: var(--red-soft); }
+    .plain-rule ul { margin: .65rem 0 0; padding-left: 1.2rem; }
+    .plain-rule li { margin: .38rem 0; }
+
+    .flow-wrap {
+      overflow-x: auto;
+      padding: 1.4rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 8px 25px rgba(16,42,67,.05);
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(145px, 1fr));
+      gap: 30px;
+      min-width: 1030px;
+    }
+    .step {
+      position: relative;
+      min-height: 156px;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdfe;
+    }
+    .step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      top: 53px;
+      right: -25px;
+      color: #7c94a5;
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
+    .step b { display: block; color: var(--navy); }
+    .step p { margin: .38rem 0 0; color: var(--muted); font-size: .88rem; line-height: 1.45; }
+    .pill {
+      display: inline-block;
+      margin-bottom: .7rem;
+      padding: .27rem .54rem;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: #7c4c00;
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+    .pill.blue { background: var(--blue-soft); color: #0d568f; }
+    .pill.green { background: var(--teal-soft); color: #076653; }
+    .pill.violet { background: var(--violet-soft); color: #573889; }
+    .flow-note { margin: 1rem 0 0; color: var(--muted); font-size: .9rem; }
+
+    .cohort { display: grid; gap: .8rem; }
+    .bounty-card {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1.1rem 1.2rem;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--gold);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+    .pr-number { color: var(--navy); font-size: 1.16rem; font-weight: 900; }
+    .bounty-card h3 { margin-bottom: .2rem; }
+    .bounty-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .status-stack { display: flex; flex-direction: column; align-items: flex-end; gap: .35rem; }
+    .tag { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .55rem; border-radius: 999px; font-size: .74rem; font-weight: 850; white-space: nowrap; }
+    .tag.warn { background: var(--gold-soft); color: #7b4b00; }
+    .tag.off { background: #edf1f4; color: #566571; }
+    .tag.good { background: var(--teal-soft); color: #08624f; }
+
+    .state-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: .55rem;
+      margin: 1.2rem 0;
+    }
+    .state {
+      position: relative;
+      padding: .9rem .75rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      text-align: center;
+    }
+    .state:not(:last-child)::after { content: "›"; position: absolute; right: -.47rem; top: 50%; transform: translateY(-55%); z-index: 2; color: #8ca1b0; font-size: 1.4rem; font-weight: 900; }
+    .state b { display: block; color: var(--navy); font-size: .84rem; }
+    .state small { display: block; margin-top: .25rem; color: var(--muted); line-height: 1.3; }
+    .state.active { border-color: #e3bd6e; background: var(--gold-soft); }
+
+    .decision-glance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; margin-bottom: 1rem; }
+    .glance { padding: .78rem .88rem; border: 1px solid var(--line); border-radius: 11px; background: #f8fbfd; }
+    .glance b { display: block; margin-bottom: .12rem; color: var(--navy); font-size: .82rem; }
+    .glance span { color: var(--teal); font-size: .88rem; font-weight: 780; }
+    .choice-row { display: flex; flex-wrap: wrap; gap: .42rem; margin: .58rem 0; }
+    .choice { padding: .32rem .52rem; border: 1px solid var(--line); border-radius: 8px; background: #f7fafc; color: #3f5667; font-size: .82rem; line-height: 1.35; }
+    .choice b { color: var(--navy); }
+    .decision-list { display: grid; gap: 1rem; }
+    .decision {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr) minmax(210px, .72fr);
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 7px 22px rgba(16,42,67,.045);
+    }
+    .decision-id { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; background: var(--navy); color: #fff; font-weight: 900; }
+    .decision h3 { margin-bottom: .35rem; }
+    .decision p { margin: .3rem 0; color: var(--muted); }
+    .recommend {
+      padding: .85rem .95rem;
+      border: 1px solid #a7dacd;
+      border-radius: 12px;
+      background: var(--teal-soft);
+      color: #0d5548;
+    }
+    .recommend strong { display: block; margin-bottom: .25rem; color: #084c3f; }
+
+    .quote {
+      padding: 1.2rem 1.3rem;
+      border-left: 6px solid var(--teal);
+      border-radius: 8px 14px 14px 8px;
+      background: var(--teal-soft);
+      color: #12483f;
+      font-size: 1.06rem;
+      font-weight: 720;
+    }
+
+    .checklist { margin: .6rem 0 0; padding: 0; list-style: none; }
+    .checklist li { position: relative; margin: .55rem 0; padding-left: 1.7rem; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: .05rem; display: grid; place-items: center; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--teal); color: #fff; font-size: .72rem; font-weight: 900; }
+    .blocklist li::before { content: "•"; background: var(--gold); }
+
+    .repo-rollout { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: stretch; gap: 1rem; }
+    .repo {
+      padding: 1.3rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+    }
+    .repo .order { display: inline-grid; place-items: center; width: 29px; height: 29px; margin-right: .45rem; border-radius: 9px; background: var(--navy); color: #fff; font-weight: 900; }
+    .arrow { display: grid; place-items: center; color: var(--teal); font-size: 2.2rem; font-weight: 900; }
+    .repo ul { margin-bottom: 0; padding-left: 1.25rem; }
+
+    .callout {
+      padding: 1rem 1.15rem;
+      border: 1px solid #e5ca8d;
+      border-radius: 14px;
+      background: var(--gold-soft);
+      color: #654309;
+    }
+    .callout strong { color: #573700; }
+
+    .details-stack { display: grid; gap: .8rem; }
+    details {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+    summary {
+      position: relative;
+      padding: 1rem 3rem 1rem 1.15rem;
+      cursor: pointer;
+      color: var(--navy);
+      font-weight: 850;
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; position: absolute; right: 1.1rem; top: .72rem; color: var(--blue); font-size: 1.45rem; }
+    details[open] summary::after { content: "−"; }
+    details[open] summary { border-bottom: 1px solid var(--line); background: #f8fbfd; }
+    .detail-body { padding: 1.15rem; }
+    .detail-body > :first-child { margin-top: 0; }
+    .detail-body > :last-child { margin-bottom: 0; }
+
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .91rem; }
+    th, td { padding: .72rem .75rem; border: 1px solid var(--line); vertical-align: top; text-align: left; }
+    th { background: #eef4f7; color: var(--navy); font-weight: 850; }
+    tr:nth-child(even) td { background: #fbfdfe; }
+
+    .footer {
+      margin-top: 60px;
+      padding: 1.4rem 0 0;
+      border-top: 1px solid var(--line-strong);
+      color: var(--muted);
+      font-size: .86rem;
+    }
+    .footer strong { color: var(--navy); }
+
+    @media (max-width: 900px) {
+      .nav { display: none; }
+      .grid-3, .grid-2, .plain-rule, .repo-rollout { grid-template-columns: 1fr; }
+      .decision-glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .plain-rule > div + div { border-left: 0; border-top: 1px solid var(--line); }
+      .arrow { transform: rotate(90deg); min-height: 42px; }
+      .decision { grid-template-columns: 48px minmax(0, 1fr); }
+      .decision .recommend { grid-column: 1 / -1; }
+      .state-strip { grid-template-columns: repeat(3, 1fr); }
+      .state:nth-child(3)::after { display: none; }
+      .decision-banner { grid-template-columns: 1fr; }
+      .reply-chip { white-space: normal; }
+    }
+    @media (max-width: 640px) {
+      main { width: min(100% - 18px, 1180px); margin-top: 10px; }
+      .topbar-inner { width: min(100% - 24px, 1180px); }
+      .hero { padding: 24px 20px; border-radius: 19px; }
+      .hero h1 { font-size: 2.12rem; }
+      .hero .lede { font-size: 1rem; line-height: 1.47; }
+      .hero-meta { margin-top: .8rem; gap: .28rem 1rem; font-size: .78rem; }
+      .decision-banner { margin-top: .85rem; padding: .78rem .84rem; }
+      .section { margin-top: 45px; }
+      .section-head { grid-template-columns: 36px minmax(0, 1fr); gap: .75rem; }
+      .section-no { width: 36px; height: 36px; border-radius: 10px; }
+      .grid-3, .grid-2 { gap: .75rem; }
+      .decision-glance { grid-template-columns: 1fr; }
+      .bounty-card { grid-template-columns: 1fr; }
+      .status-stack { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+      .state-strip { grid-template-columns: 1fr; }
+      .state:not(:last-child)::after { content: "↓"; top: auto; bottom: -.72rem; right: 50%; transform: translateX(50%); }
+      .state:nth-child(3)::after { display: block; }
+      .decision { grid-template-columns: 1fr; }
+      .decision .recommend { grid-column: auto; }
+      table { display: block; overflow-x: auto; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 13mm; }
+      body { background: #fff; font-size: 10.2pt; }
+      .topbar { display: none; }
+      main { width: 100%; margin: 0; }
+      .hero { padding: 22px; border-radius: 0; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .section { margin-top: 28px; }
+      .card, .flow-wrap, .bounty-card, .decision, .repo, details { box-shadow: none; break-inside: avoid; }
+      details { break-inside: auto; }
+      details:not([open]) .detail-body { display: block; }
+      details:not([open]) summary { border-bottom: 1px solid var(--line); }
+      summary::after { display: none; }
+      .flow { min-width: 0; grid-template-columns: repeat(3, 1fr); }
+      .step:nth-child(3)::after { display: none; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">ScienceAccelBench · Bounty Decision Brief</div>
+      <nav class="nav" aria-label="Document sections">
+        <a href="#one-minute">One-minute view</a>
+        <a href="#cohort">First three</a>
+        <a href="#decisions">Six decisions</a>
+        <a href="#openfoam">OpenFOAM</a>
+        <a href="#rollout">Rollout</a>
+        <a href="#appendix">Technical appendix</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="hero">
+      <span class="eyebrow">Decision needed · six defaults before implementation</span>
+      <h1>Persistent bounties for deferred scientific work</h1>
+      <p class="lede">
+        A bounty would be one durable Git record for a deferred PR: what is blocked, what must change, who may claim it, and when it can return.
+        This gives ScienceAccelBench a safe pause button without confusing unfinished work with an approved task.
+      </p>
+      <div class="hero-meta">
+        <span><strong>Document:</strong> decision brief v0.2</span>
+        <span><strong>Prepared:</strong> 2026-09-13 02:55 PDT</span>
+        <span><strong>Reading time:</strong> 4 minutes for decisions · 12 minutes with appendix</span>
+      </div>
+      <div class="decision-banner">
+        <p><strong>What is needed now:</strong> approve or change six design choices. Nothing is implemented, reopened, or published by this document.</p>
+        <div class="reply-chip"><small>Suggested reply</small><code>Approve the recommended defaults</code></div>
+      </div>
+    </article>
+
+    <section class="section" id="one-minute">
+      <div class="section-head">
+        <div class="section-no">1</div>
+        <div>
+          <h2>The one-minute view</h2>
+          <p>The current system handles ideas and active task PRs, but it has no durable home for work that is valuable yet not ready.</p>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <div class="icon">!</div>
+          <h3>The problem</h3>
+          <p class="muted">Keeping weak task PRs open makes the active queue misleading. Closing them can bury the reason, evidence, and route back to useful work.</p>
+        </article>
+        <article class="card">
+          <div class="icon">B</div>
+          <h3>The proposal</h3>
+          <p class="muted">Store each deferred work item as one strict JSON record in Git. Every meaningful change becomes canonical only after a reviewed PR is merged.</p>
+        </article>
+        <article class="card">
+          <div class="icon">✓</div>
+          <h3>The safety model</h3>
+          <p class="muted">The ledger records readiness and blockers. It never grants scientific approval, ownership transfer, compute consent, merge authority, or payment.</p>
+        </article>
+      </div>
+
+      <div class="plain-rule" style="margin-top:1rem">
+        <div class="yes">
+          <h3>A bounty is</h3>
+          <ul>
+            <li>a durable, public work item;</li>
+            <li>a clear statement of what is blocked and what evidence would unblock it;</li>
+            <li>a PR-governed route from “not ready” to completed work;</li>
+            <li>a link between past PR evidence and future packaging work.</li>
+          </ul>
+        </div>
+        <div class="no">
+          <h3>A bounty is not</h3>
+          <ul>
+            <li>money, a compute budget, or leaderboard points;</li>
+            <li>a task submission or accepted module cut;</li>
+            <li>permission to run, push, comment, approve, reopen, merge, or publish;</li>
+            <li>an automatic assignment to whoever comments first.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="flow">
+      <div class="section-head">
+        <div class="section-no">2</div>
+        <div>
+          <h2>How work would move</h2>
+          <p>Every arrow represents an explicit human-reviewed transition. Time, a comment, a branch, or a bot event never moves a bounty automatically.</p>
+        </div>
+      </div>
+
+      <div class="flow-wrap">
+        <div class="flow" aria-label="Bounty lifecycle">
+          <article class="step">
+            <span class="pill blue">Discussion</span>
+            <b>Idea or blocker</b>
+            <p>An issue or review reveals valuable work that is not ready for delivery.</p>
+          </article>
+          <article class="step">
+            <span class="pill">Merged PR</span>
+            <b>Publish bounty</b>
+            <p>Scope, blockers, acceptance, ownership mode, and links enter Git main.</p>
+          </article>
+          <article class="step">
+            <span class="pill">Merged PR</span>
+            <b>Accept a claim</b>
+            <p>A contributor proposes a plan. An open claim PR is not yet a claim.</p>
+          </article>
+          <article class="step">
+            <span class="pill violet">Normal skill stops</span>
+            <b>Do the work</b>
+            <p>Source, module, test, run-plan, tolerance, and review gates still apply.</p>
+          </article>
+          <article class="step">
+            <span class="pill">Merged PR</span>
+            <b>Review delivery</b>
+            <p>The linked source, task, or repair PR is judged on its own evidence.</p>
+          </article>
+          <article class="step">
+            <span class="pill green">Merged evidence</span>
+            <b>Complete</b>
+            <p>Only merged delivery evidence and satisfied acceptance items finish the bounty.</p>
+          </article>
+        </div>
+        <p class="flow-note"><strong>Canonical truth:</strong> ScienceAccelBench <code>main</code>. The watcher may report activity, but it never owns or changes bounty state.</p>
+      </div>
+    </section>
+
+    <section class="section" id="cohort">
+      <div class="section-head">
+        <div class="section-no">3</div>
+        <div>
+          <h2>The first three deferred items</h2>
+          <p>These PRs were closed with gratitude. Their branches, evidence, and codebases remain preserved; the future ledger would make the deferral explicit.</p>
+        </div>
+      </div>
+
+      <div class="cohort">
+        <article class="bounty-card">
+          <div class="pr-number"><a href="https://github.com/aitofound/ScienceAccelBench/pull/712">PR #712</a></div>
+          <div>
+            <h3>OpenFOAM · revise and complete packaging</h3>
+            <p>Keep the codebase. Re-establish source fidelity, agree on a defensible module cut, obtain pinned-source build evidence, and broaden official coverage.</p>
+          </div>
+          <div class="status-stack"><span class="tag warn">needs_scope</span><span class="tag off">not claimable</span></div>
+        </article>
+
+        <article class="bounty-card">
+          <div class="pr-number"><a href="https://github.com/aitofound/ScienceAccelBench/pull/713">PR #713</a></div>
+          <div>
+            <h3>PySCF FCI · turn review findings into a repair scope</h3>
+            <p>Keep the codebase and deferred evidence. Before anyone claims it, convert the exact changes-requested findings into explicit acceptance items.</p>
+          </div>
+          <div class="status-stack"><span class="tag warn">needs_scope</span><span class="tag off">not claimable</span></div>
+        </article>
+
+        <article class="bounty-card">
+          <div class="pr-number"><a href="https://github.com/aitofound/ScienceAccelBench/pull/714">PR #714</a></div>
+          <div>
+            <h3>CLASS · revise scientific comparison policy</h3>
+            <p>Keep the codebase and deferred evidence. Resolve tolerance calibration, signal-erasure rejection, and per-observable comparison policy before reopening.</p>
+          </div>
+          <div class="status-stack"><span class="tag warn">needs_scope</span><span class="tag off">not claimable</span></div>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top:1rem">
+        <strong>Important:</strong> these closures are historical evidence, not bounty transitions—the ledger does not exist yet. Nothing here automatically reopens or changes the three PRs.
+      </div>
+    </section>
+
+    <section class="section" id="states">
+      <div class="section-head">
+        <div class="section-no">4</div>
+        <div>
+          <h2>A lifecycle people can read</h2>
+          <p>The main path is simple. <code>paused</code> and <code>retired</code> remain deliberate curator choices available from the active stages.</p>
+        </div>
+      </div>
+
+      <div class="state-strip">
+        <div class="state active"><b>needs_scope</b><small>Known work, but not ready to claim</small></div>
+        <div class="state"><b>open</b><small>Scope and acceptance are ready</small></div>
+        <div class="state"><b>claimed</b><small>One claim PR has been merged</small></div>
+        <div class="state"><b>in_progress</b><small>Accepted claimant has begun</small></div>
+        <div class="state"><b>in_review</b><small>Linked delivery is under review</small></div>
+        <div class="state"><b>completed</b><small>Merged evidence satisfies acceptance</small></div>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <h3>Who can claim?</h3>
+          <p class="muted">By default, only the original source vendor. A broader assignment requires an explicit curator decision recorded through a merged transition PR.</p>
+        </article>
+        <article class="card">
+          <h3>What makes a claim real?</h3>
+          <p class="muted">A merged claim PR. “I will take it,” an issue assignment, an open PR, or a branch is only a proposal.</p>
+        </article>
+        <article class="card">
+          <h3>What makes it complete?</h3>
+          <p class="muted">Linked delivery PRs are merged and each observable acceptance item has evidence. A green bounty record cannot replace scientific review.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="decisions">
+      <div class="section-head">
+        <div class="section-no">5</div>
+        <div>
+          <h2>Six decisions before implementation</h2>
+          <p>Each card states the actual choice, not only the recommended answer. Approving the defaults would freeze the implementation contract; it would not itself merge future PRs.</p>
+        </div>
+      </div>
+
+      <div class="decision-glance" aria-label="Recommended defaults at a glance">
+        <div class="glance"><b>1 · Delivery</b><span>Pipeline PR, then benchmark PR</span></div>
+        <div class="glance"><b>2 · Meaning</b><span>Non-monetary work ledger</span></div>
+        <div class="glance"><b>3 · Ownership</b><span>Original vendor by default</span></div>
+        <div class="glance"><b>4 · Enforcement</b><span>Precise CI + human stops</span></div>
+        <div class="glance"><b>5 · Reopening</b><span>Keep the three PRs closed</span></div>
+        <div class="glance"><b>6 · Initial state</b><span>needs_scope</span></div>
+      </div>
+
+      <div class="decision-list">
+        <article class="decision">
+          <div class="decision-id">1</div>
+          <div>
+            <h3>Where should the feature be implemented?</h3>
+            <div class="choice-row"><span class="choice"><b>A</b> One benchmark-only PR</span><span class="choice"><b>B</b> Two ordered PRs</span></div>
+            <p>The pipeline repository owns generic skill and CLI behavior; the benchmark owns project-specific bounty records.</p>
+          </div>
+          <div class="recommend"><strong>Recommended: two ordered PRs</strong>Canonical pipeline first; ScienceAccelBench feature/data second.</div>
+        </article>
+
+        <article class="decision">
+          <div class="decision-id">2</div>
+          <div>
+            <h3>Does “bounty” mean money?</h3>
+            <div class="choice-row"><span class="choice"><b>A</b> Work item only</span><span class="choice"><b>B</b> Payment, compute, or rewards too</span></div>
+            <p>Adding money would require an entirely different policy, accounting, and authorization design.</p>
+          </div>
+          <div class="recommend"><strong>Recommended: non-monetary v1</strong>No payment promise, compute budget, reward weight, or points.</div>
+        </article>
+
+        <article class="decision">
+          <div class="decision-id">3</div>
+          <div>
+            <h3>Can a bounty transfer contributor ownership?</h3>
+            <div class="choice-row"><span class="choice"><b>A</b> Original vendor by default</span><span class="choice"><b>B</b> Open transfer through bounty</span></div>
+            <p>Any exception should be explicit, named, and curator-approved—not implied by a claim.</p>
+          </div>
+          <div class="recommend"><strong>Recommended: no transfer by default</strong>Use a separate <code>curator_assigned</code> transition only if an exception is approved.</div>
+        </article>
+
+        <article class="decision">
+          <div class="decision-id">4</div>
+          <div>
+            <h3>How strict should v1 enforcement be?</h3>
+            <div class="choice-row"><span class="choice"><b>A</b> Exact-record CI + human stops</span><span class="choice"><b>B</b> Global codebase task block</span></div>
+            <p>A codebase may eventually have several independent module or task bounties; a codebase-wide block is too blunt.</p>
+          </div>
+          <div class="recommend"><strong>Recommended: precise gates</strong>Strict schema/index CI and skill STOPs; no global codebase-wide task refusal.</div>
+        </article>
+
+        <article class="decision">
+          <div class="decision-id">5</div>
+          <div>
+            <h3>When may #712, #713, or #714 reopen?</h3>
+            <div class="choice-row"><span class="choice"><b>A</b> Keep closed until ready</span><span class="choice"><b>B</b> Reopen when ledger is created</span></div>
+            <p>Reopening is a GitHub side effect and a separate curator decision.</p>
+          </div>
+          <div class="recommend"><strong>Recommended: keep closed</strong>Consider reopening only at <code>open</code> or <code>claimed</code>, through separate explicit words.</div>
+        </article>
+
+        <article class="decision">
+          <div class="decision-id">6</div>
+          <div>
+            <h3>What should the initial public state be called?</h3>
+            <div class="choice-row"><span class="choice"><b>A</b> <code>needs_scope</code></span><span class="choice"><b>B</b> <code>needs_revision</code></span></div>
+            <p>The initial three items lack ownership, deliverable, or acceptance terms that are ready for a claim—not merely one known patch.</p>
+          </div>
+          <div class="recommend"><strong>Recommended: needs_scope</strong>Pair it with a precise public note explaining what must become claim-ready.</div>
+        </article>
+      </div>
+
+      <div class="quote" style="margin-top:1.15rem">
+        Fast approval path: “Approve the recommended defaults.” Otherwise, name the decision number and the change—for example, “Approve 1–5; use <code>needs_revision</code> for decision 6.”
+      </div>
+    </section>
+
+    <section class="section" id="openfoam">
+      <div class="section-head">
+        <div class="section-no">6</div>
+        <div>
+          <h2>OpenFOAM, in plain language</h2>
+          <p>The codebase stays. The current task does not. The bounty would preserve exactly why and what a future contributor must do.</p>
+        </div>
+      </div>
+
+      <div class="quote">
+        OpenFOAM is included in the codebase library but has not yet been processed into an accepted task. Its module cut is not ready; OpenFOAM needs revision before work resumes.
+      </div>
+
+      <div class="grid-2" style="margin-top:1rem">
+        <article class="card">
+          <h3>Preserved as-is</h3>
+          <ul class="checklist">
+            <li>merged source code and source report;</li>
+            <li>closed PR #712, its branch, and its evidence;</li>
+            <li>Git and GitHub history;</li>
+            <li>the option to reopen later when the scope is ready.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Must become true before renewed task work</h3>
+          <ul class="checklist blocklist">
+            <li>case-sensitive vendored tree matches the approved upstream pin;</li>
+            <li>a revised module/task cut receives explicit curator approval;</li>
+            <li>the exact pinned source builds and has a short official-run receipt;</li>
+            <li>official test/example coverage is surveyed and justified;</li>
+            <li>the normal run-plan, tolerance, self-validation, and review stops are passed.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="grid-3" style="margin-top:1rem">
+        <article class="card"><h3>Blocker 1 · source fidelity</h3><p class="muted">The exact-tree review found 103 case-collision pairs that were not preserved in the vendored tree.</p></article>
+        <article class="card"><h3>Blocker 2 · module cut</h3><p class="muted">The current cut is not accepted as ready for renewed task packaging.</p></article>
+        <article class="card"><h3>Blocker 3 · task scope</h3><p class="muted">Four icoFoam checks around a prebuilt solver are not an acceptable complete package for this phase.</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="rollout">
+      <div class="section-head">
+        <div class="section-no">7</div>
+        <div>
+          <h2>Clean two-repository rollout</h2>
+          <p>This is one feature with two owners. The order prevents ScienceAccelBench from forking its vendored copy of the canonical skill.</p>
+        </div>
+      </div>
+
+      <div class="repo-rollout">
+        <article class="repo">
+          <h3><span class="order">1</span> Canonical pipeline PR</h3>
+          <p class="muted"><code>aitofound/sciaccelbench-pipeline</code></p>
+          <ul>
+            <li>bounty semantics and lifecycle;</li>
+            <li><code>sab.py bounty</code> commands;</li>
+            <li>templates, schema support, validators, and tests;</li>
+            <li>SPEC/SKILL briefing and version bump;</li>
+            <li>export/vendor manifest updates.</li>
+          </ul>
+        </article>
+        <div class="arrow" aria-hidden="true">→</div>
+        <article class="repo">
+          <h3><span class="order">2</span> ScienceAccelBench PR</h3>
+          <p class="muted"><code>aitofound/ScienceAccelBench</code></p>
+          <ul>
+            <li>vendor the exact merged pipeline commit;</li>
+            <li>add <code>bounties/</code> records and generated indices;</li>
+            <li>wire deterministic CI and the <code>sciaccel-bounty</code> label;</li>
+            <li>publish the initial #712/#713/#714 cohort;</li>
+            <li>preserve every existing source, report, task, branch, and history item.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout" style="margin-top:1rem">
+        <strong>Still not automatic:</strong> alignment on this rollout permits planning and implementation only if Jason says so. It does not pre-authorize approval or merge of either future PR.
+      </div>
+    </section>
+
+    <section class="section" id="guardrails">
+      <div class="section-head">
+        <div class="section-no">8</div>
+        <div>
+          <h2>What remains human-owned</h2>
+          <p>The ledger improves memory and workflow clarity; it deliberately does not mechanize scientific or project authority.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <article class="card">
+          <h3>Software can enforce</h3>
+          <ul class="checklist">
+            <li>strict fields, enums, IDs, and safe paths;</li>
+            <li>one record per bounty and no duplicate IDs;</li>
+            <li>state and claimant consistency;</li>
+            <li>deterministic generated-index freshness;</li>
+            <li>the distinct <code>sciaccel-bounty</code> label;</li>
+            <li>no retroactive bounty requirement for existing tasks.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Humans still decide</h3>
+          <ul class="checklist blocklist">
+            <li>whether scope is ready to open;</li>
+            <li>who may claim and whether ownership changes;</li>
+            <li>whether acceptance is scientifically sufficient;</li>
+            <li>run location, resources, tolerances, and reward policy;</li>
+            <li>whether to comment, close, reopen, approve, merge, pause, or retire.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="appendix">
+      <div class="section-head">
+        <div class="section-no">A</div>
+        <div>
+          <h2>Technical appendix</h2>
+          <p>The decision brief above is complete enough to align. The implementation contract and evidence are preserved below for engineering review.</p>
+        </div>
+      </div>
+
+      <div class="details-stack">
+        <details>
+          <summary>Proposed repository layout</summary>
+          <div class="detail-body">
+<pre><code>bounties/
+  README.md                       # semantics, lifecycle, contribution rules
+  schema.json                     # strict JSON Schema for one source record
+  openfoam-complete-package.json # one canonical source record per bounty
+  index.json                      # GENERATED UI/API projection
+  index.md                        # GENERATED human table
+scripts/
+  check-bounties.mjs              # records, links, and index freshness
+  gen-bounties.mjs                # deterministic index generator
+.github/
+  labeler.yml                     # bounties/** → sciaccel-bounty</code></pre>
+            <p>One JSON file per bounty avoids a high-conflict mega-file. Git history is the decision trail; generated indices are projections, never hand-edited sources.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Record shape and field meanings</summary>
+          <div class="detail-body">
+<pre><code>{
+  "schema_version": 1,
+  "id": "openfoam-complete-package",
+  "codebase": "openfoam",
+  "title": "Revise and complete OpenFOAM packaging",
+  "kind": "codebase_revision",
+  "state": "needs_scope",
+  "claimable": false,
+  "priority": "future",
+  "public_note": "OpenFOAM is included ... needs revision before work resumes.",
+  "summary": "What this bounty is for",
+  "work_required": ["Concrete deliverables"],
+  "acceptance": ["Observable completion evidence"],
+  "blockers": [{"id": "...", "summary": "...", "evidence": "...", "resolution_required": "..."}],
+  "ownership": {
+    "source_vendor": "JunkaiWang-TheoPhy",
+    "mode": "original_vendor_only",
+    "claimant": null,
+    "claim_pr": null,
+    "review_after": null
+  },
+  "links": {
+    "source_prs": [710],
+    "deferred_prs": [712],
+    "code_path": "code/openfoam",
+    "report_path": "codebase-reports/openfoam",
+    "discussion_issues": []
+  },
+  "updated": {"at": "...Z", "by": "huangzesen", "reason": "..."}
+}</code></pre>
+            <table>
+              <thead><tr><th>Field</th><th>Meaning</th><th>Key rule</th></tr></thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>Immutable bounty identity</td><td>Lowercase kebab-case; filename must match.</td></tr>
+                <tr><td><code>kind</code></td><td>Type of work</td><td><code>codebase_revision</code>, <code>module_definition</code>, <code>task_package</code>, <code>coverage_expansion</code>, or <code>review_repair</code>.</td></tr>
+                <tr><td><code>state</code></td><td>Current operational readiness</td><td>One enumerated state; transitions are merged PRs.</td></tr>
+                <tr><td><code>work_required</code></td><td>Ordered deliverables</td><td>No vague “finish the codebase.”</td></tr>
+                <tr><td><code>acceptance</code></td><td>Evidence required to finish</td><td>Observable evidence, never invented scientific thresholds.</td></tr>
+                <tr><td><code>blockers</code></td><td>Why work cannot advance</td><td>A state edit alone cannot silently clear a blocker.</td></tr>
+                <tr><td><code>priority</code></td><td>Scheduling intent</td><td><code>now</code>, <code>next</code>, <code>future</code>, or <code>parked</code>; not a deadline/payment tier.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>State and ownership rules</summary>
+          <div class="detail-body">
+            <table>
+              <thead><tr><th>State</th><th>Meaning</th><th>Claim/work allowed?</th></tr></thead>
+              <tbody>
+                <tr><td><code>needs_scope</code></td><td>Work known; deliverable or acceptance not ready</td><td>No</td></tr>
+                <tr><td><code>open</code></td><td>Scope and acceptance are claim-ready</td><td>Claim proposal only</td></tr>
+                <tr><td><code>claimed</code></td><td>One claimant’s PR is merged</td><td>Yes, for that claimant</td></tr>
+                <tr><td><code>in_progress</code></td><td>Accepted claimant has begun</td><td>Yes</td></tr>
+                <tr><td><code>in_review</code></td><td>Linked delivery PR is under review</td><td>Revision only</td></tr>
+                <tr><td><code>completed</code></td><td>Acceptance evidence and delivery are merged</td><td>No further work under this bounty</td></tr>
+                <tr><td><code>paused</code></td><td>Curator intentionally halted work</td><td>No</td></tr>
+                <tr><td><code>retired</code></td><td>No longer wanted or superseded</td><td>No</td></tr>
+              </tbody>
+            </table>
+            <p><strong>Ownership modes:</strong> <code>original_vendor_only</code> (default), <code>curator_assigned</code> (one explicit named exception), and <code>open_call</code> (anyone may propose; nobody owns it until a claim PR merges). One active claimant maximum.</p>
+            <p><strong>No clocks:</strong> <code>review_after</code> is advisory. Expiration, reassignment, retirement, and reopening always require a merged PR and curator decision.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>PR workflow: publish, claim, work, complete</summary>
+          <div class="detail-body">
+            <h3>Publish</h3>
+            <ol>
+              <li>Discuss the need if necessary; <code>sciaccel-idea</code> remains discussion only.</li>
+              <li>Add one bounty record and regenerate indices.</li>
+              <li>Open a PR labelled <code>sciaccel-bounty</code>, never <code>sciaccel-task</code>.</li>
+              <li>Present state, claimability, note, blockers, required work, acceptance, ownership, and links.</li>
+              <li>Merge publishes the bounty.</li>
+            </ol>
+            <h3>Claim and work</h3>
+            <ol>
+              <li>A contributor proposes a narrow record/index change with plan and capacity.</li>
+              <li>Only a merged claim PR sets <code>claimed</code> and one claimant.</li>
+              <li>A merged transition records <code>in_progress</code>.</li>
+              <li>Source/task work continues through the normal package-sciaccel-task human stops.</li>
+              <li>A linked delivery PR plus merged transition records <code>in_review</code>.</li>
+            </ol>
+            <h3>Complete, pause, retire</h3>
+            <p><code>completed</code> requires merged delivery PRs and evidence for every acceptance item. <code>paused</code> blocks more work but preserves the claimant. <code>retired</code> records why work is no longer wanted; it deletes nothing. Bots close or reopen nothing automatically.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>Canonical skill and CLI surface</summary>
+          <div class="detail-body">
+<pre><code>sab.py bounty list [--state &lt;state&gt;] [--codebase &lt;slug&gt;]
+sab.py bounty show --id &lt;id&gt;
+sab.py bounty init --id &lt;id&gt; --codebase &lt;slug&gt; --kind &lt;kind&gt; --out &lt;checkout&gt;
+sab.py bounty validate [--id &lt;id&gt;] [--all]
+sab.py bounty present --id &lt;id&gt;</code></pre>
+            <ul>
+              <li><code>list</code>, <code>show</code>, <code>validate</code>, and <code>present</code> are read-only.</li>
+              <li><code>init</code> writes only a local scaffold. It cannot open a PR, claim, transition, run, or merge.</li>
+              <li><code>brief</code> and <code>status</code> show matching bounties and visible human STOPs.</li>
+              <li>No command converts private <code>--human-ref</code> text directly into public bounty state.</li>
+              <li>The briefing distinguishes an issue (discussion), bounty PR (publishes work), and task PR (delivers work).</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Implementation acceptance tests</summary>
+          <div class="detail-body">
+            <ol>
+              <li>Schema accepts the three intended records and rejects unknown fields, duplicate IDs, invalid states, bad paths, and contradictory claim fields.</li>
+              <li>Generation is deterministic; validation fails stale <code>index.json</code> or <code>index.md</code>.</li>
+              <li><code>bounties/**</code> receives <code>sciaccel-bounty</code>, never <code>sciaccel-task</code>.</li>
+              <li><code>sab.py bounty list/show/validate/present</code> is stable; <code>init</code> creates only a local scaffold.</li>
+              <li><code>brief</code> explains issue vs bounty PR vs task PR and each human stop.</li>
+              <li><code>status</code> renders state, claimability, note, and blockers accurately.</li>
+              <li>Existing codebases and tasks without bounty records behave exactly as before.</li>
+              <li>Validation and tests require no network.</li>
+              <li>Vendored skill bytes and manifests match the canonical pipeline commit.</li>
+              <li>Existing source, report, task, PR, branch, and Git history remain present and are not silently rewritten.</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>Explicit non-goals</summary>
+          <div class="detail-body">
+            <ul>
+              <li>No automatic contributor assignment, expiration, closure, reopening, merge, or comment.</li>
+              <li>No money, payment ledger, compute promise, reward weights, or leaderboard points.</li>
+              <li>No replacement for the task registry, source reports, issues, PRs, or packaging pipeline.</li>
+              <li>No scientific tolerance or reward decision.</li>
+              <li>No deletion, source removal, history rewrite, or retroactive ownership grant.</li>
+              <li>No watcher-owned state; Git main remains canonical.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>Evidence baseline and current decision boundary</summary>
+          <div class="detail-body">
+            <table>
+              <tbody>
+                <tr><th>ScienceAccelBench remote main</th><td><code>e9d26564f805f3d95f153502b743210541e40c9e</code></td></tr>
+                <tr><th>Canonical pipeline remote main</th><td><code>5d2b43415ed2a0aea11b7600abda9c2b02497b0c</code></td></tr>
+                <tr><th>Canonical skill version</th><td><code>package-sciaccel-task v5.11.12</code> in both remote repositories at the baseline</td></tr>
+                <tr><th>Deferred PR heads</th><td>#712 <code>f92076deaa40</code>; #713 <code>4a78d143</code>; #714 <code>fbcc445c</code></td></tr>
+              </tbody>
+            </table>
+            <p>This document proposes the system only. Do not reopen or further comment on #712/#713/#714, remove a codebase, edit either repository, or open a bounty-system PR before Jason aligns on the six decisions and gives the corresponding action instruction.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <strong>ScienceAccelBench Persistent Bounty System · Decision Brief v0.2</strong><br>
+      Standalone alignment artifact. No repository edit or bounty-system PR existed when this document was produced. The original v0.1 Markdown remains the detailed source memo; this v0.2 reorganizes the same contract for human review.
+    </footer>
+  </main>
+</body>
+</html>
