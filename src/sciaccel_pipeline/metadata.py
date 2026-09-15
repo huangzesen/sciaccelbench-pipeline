@@ -504,9 +504,23 @@ def _metadata_report_doc(cb: dict, mdoc: dict | None, raw: dict, state: Path, wa
     for section in ("codebase", "measurement", "shared_components", "modules", "official_tests", "classification_and_gaps"):
         if section not in raw:
             warnings.append(f"agent-authored {section} section is absent; unknown values remain visible")
+    runs_path = state / "runs.json"
+    if runs_path.is_file():
+        runs_doc = read_json(runs_path)
+        build_and_run = {"recorded": True,
+                         "build": _metadata_copy_public(runs_doc.get("build"), warnings, "build_and_run.build"),
+                         "landscape": _metadata_copy_public(_metadata_list(runs_doc.get("landscape")), warnings, "build_and_run.landscape"),
+                         "runs": _metadata_copy_public(_metadata_list(runs_doc.get("runs")), warnings, "build_and_run.runs"),
+                         "pitfalls": _metadata_copy_public(_metadata_list(runs_doc.get("pitfalls")), warnings, "build_and_run.pitfalls"),
+                         "not_run": _metadata_copy_public(_metadata_list(runs_doc.get("not_run")), warnings, "build_and_run.not_run"),
+                         "classification": "CLI-copied from the Step 1.2 record (runs.json); agent-measured on the native build"}
+    else:
+        build_and_run = {"recorded": False, "build": None, "landscape": [], "runs": [], "pitfalls": [], "not_run": [],
+                         "classification": "NOT RECORDED: Step 1.2 build-and-run was not done"}
+        warnings.append("Step 1.2 build-and-run is NOT recorded (no runs.json): the report cannot say what was built and actually run; skipping it is strongly advised against")
     result = {"schema_version": _METADATA_SCHEMA, "report_type": "codebase-metadata", "generated_at": now(),
               "informational": True, "non_blocking": True, "codebase": codebase, "measurement": measurement,
-              "size": size, "approval": approval_report, "shared_components": shared, "modules": cards,
+              "size": size, "approval": approval_report, "build_and_run": build_and_run, "shared_components": shared, "modules": cards,
               "official_tests": official, "classification_and_gaps": classification,
               "warnings": sorted(set(warnings))}
     if "notes" in raw:
