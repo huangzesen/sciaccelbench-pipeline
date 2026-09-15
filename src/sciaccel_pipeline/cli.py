@@ -6,6 +6,7 @@
     sab.py codebase propose-modules --codebase <id>
     sab.py codebase approve-modules --codebase <id> --human-ref "<the human's words>" [--modules a,b]
     sab.py codebase report          --codebase <id> [--metadata PATH]  # Step 1.5 informational report, before source PR
+    sab.py codebase present         --codebase <id> [--markdown] [--root <checkout>]  # the codebase page from the report: the PR body, what the human sees first
     sab.py codebase source-merged   --codebase <id> --human-ref "<the human's words>" [--pr <url>]   # Step 1.5, after the merge
     sab.py codebase survey-tests    --codebase <id> [--module <slug>]
     sab.py task scaffold            --codebase <id> --module <slug> [--force]
@@ -66,6 +67,7 @@ from .codebase import (cmd_codebase_approve, cmd_codebase_build_and_run, cmd_cod
                        cmd_codebase_source_merged, cmd_codebase_survey)
 from .config import POLICIES
 from .metadata import cmd_codebase_report
+from .present import cmd_codebase_present
 from .review import cmd_task_review
 from .reviewer import cmd_review_codebase, cmd_review_status, cmd_review_task
 from .runplan import cmd_task_consent, cmd_task_plan
@@ -97,6 +99,10 @@ def main() -> None:
     p = cbp.add_parser("report", help="Step 1.5 informational metadata report; never gates the pipeline")
     p.add_argument("--codebase", required=True)
     p.add_argument("--metadata", help="agent-authored metadata JSON (default: SAB_PIPE_DIR/<id>/codebase-metadata.json)")
+    p = cbp.add_parser("present", help="the codebase page, computed from codebase-reports/<id>/codebase-metadata.json: the source PR body (--markdown) and the first thing the human sees")
+    p.add_argument("--codebase", required=True)
+    p.add_argument("--markdown", action="store_true", help="print the Markdown rendering, the body of the source PR")
+    p.add_argument("--root", help="a checkout other than the current one (a PR checkout under review)")
     p = cbp.add_parser("source-merged", help="Step 1.5 hard stop: record that the human merged the source PR")
     p.add_argument("--codebase", required=True)
     p.add_argument("--human-ref", required=True)
@@ -184,7 +190,7 @@ def main() -> None:
     if a.mode == "codebase":
         {"init": cmd_codebase_init, "propose-modules": cmd_codebase_propose,
          "approve-modules": cmd_codebase_approve, "report": cmd_codebase_report, "source-merged": cmd_codebase_source_merged,
-         "survey-tests": cmd_codebase_survey, "build-and-run": cmd_codebase_build_and_run}[a.cmd](a)
+         "survey-tests": cmd_codebase_survey, "build-and-run": cmd_codebase_build_and_run, "present": cmd_codebase_present}[a.cmd](a)
     elif a.mode == "task":
         {"scaffold": cmd_task_scaffold, "add-check": cmd_task_add_check, "lint": cmd_task_lint,
          "build": cmd_task_build, "selfcheck": cmd_task_selfcheck, "plan": cmd_task_plan,
