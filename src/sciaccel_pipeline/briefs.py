@@ -142,10 +142,13 @@ STEP 1.5  The source PR (outside this CLI). HARD STOP.
                    test suites and example decks (how many, how they run);
                    how many ran natively in the investigation and reproduced
                    the upstream reference, to how many digits.
-    Module cut     a table, one row per module: slug | title | what it
+    Module cut     the single-module default in one line (the whole codebase,
+                   one module, recorded by propose-modules); for a multi-module
+                   cut a table, one row per module: slug | title | what it
                    computes | owned paths | lines of code | expensive path |
-                   official tests that exercise it | approved or proposed-only;
-                   below it the human's approving words and date.
+                   official tests that exercise it | evidence for both
+                   conditions | approved or proposed-only; below it the human's
+                   approving words and date.
     Shared         the shared infrastructure, listed once, with lines of code.
     Left out       every not_packaged entry with its reason.
     Report         the bounded Markdown report (codebase-metadata.md) pasted
