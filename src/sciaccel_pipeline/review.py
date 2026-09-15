@@ -176,9 +176,13 @@ def cmd_task_review(a) -> None:
     if ts.is_file():
         rows_t = (read_json(ts).get("tests") or [])
         suitable = sum(1 for t in rows_t if t.get("suitable"))
+        left_out = [t for t in rows_t if not t.get("suitable")]
+        unreasoned = [t.get("id") for t in left_out if not str(t.get("why") or "").strip()]
         customs = [i["name"] for i in infos if "custom" in (i.get("labels") or [])]
-        lines += ["", f"Survey: {suitable} suitable official test(s) for this module; "
-                  f"custom checks: {customs or 'none'}."]
+        lines += ["", f"Survey: {len(rows_t)} distinct official test(s)/example(s) listed, {suitable} suitable (the exhaustive "
+                  f"default is one check each), {len(left_out)} left out"
+                  + (f", {len(unreasoned)} of them WITHOUT a reason: {', '.join(map(str, unreasoned))}" if unreasoned else " with a reason each")
+                  + f"; custom checks: {customs or 'none'}."]
     lines += ["", "## 2. The catalogue (task.toml equivalence_explanation) against the rubrics", "", (meta.get("equivalence_explanation") or "").strip(), "",
               "## 3. Warrants and variants, per check", ""]
     for i in infos:

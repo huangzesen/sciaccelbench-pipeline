@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
-description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged, survey its official tests, and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
-version: 5.12.0
-last_changed_at: "2026-09-15T23:30:00Z"
+description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged, survey its official tests and examples exhaustively (one check per distinct official test by default, every omission written down with its reason, the human informed and never asked which checks to include), and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint, obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
+version: 5.13.0
+last_changed_at: "2026-09-16T00:30:00Z"
 ---
 
 # Package a ScienceAccelBench task
@@ -86,10 +86,11 @@ and the check suite is what carries over to them.
 **Official tests** are the codebase's own test suites and its standard
 example problems alike: an upstream example is an official test even when
 upstream ships no reference output for it (the pinned build generates the
-check's reference; the example's physics anchors it). Coverage ought to be
-exhaustive, but this is an aim, not a zero-exclusion requirement: explicit
-justified exclusions are allowed, and non-exhaustiveness alone is not a defect.
-Only a check backed by neither is `custom`.
+check's reference; the example's physics anchors it). The default check set
+is exhaustive: one check per distinct official test or example the module
+ships. It is built to the best effort, so an omission is allowed when its
+reason is written down, and non-exhaustiveness with reasons is not a defect;
+an omission without a reason is. Only a check backed by neither is `custom`.
 A **check** is one **test** (`run.sh`: fixed inputs in, graded files out)
 plus one **pass policy** (`rubric.json` + `validate.py`: the scientific
 **tolerance** under which two runs are equivalent). There are exactly two
@@ -384,17 +385,25 @@ step remain available.
 - **Propose, then discuss.** The policy type of every check is proposed from
   the physics, agreed in one shot when obvious, and finalized check by check
   from the nominal-versus-variant runs. Bring the measurements; the human
-  decides. Custom checks need the human's explicit agreement; bring them
-  substantial coverage concerns and the rationale for exclusions, not a
-  count-only THIN label.
-- **How many checks.** There is no preset check-count target. Let justified
-  official-test and example coverage, task scope, runnable scientific value,
-  explicit exclusions and practical run/cost trade-offs determine the count.
-  Coverage ought to be exhaustive; this is an aim, not a requirement: document exclusions and review
-  substantial omissions, but non-exhaustiveness alone is not a defect. Survey
-  graded stages, standalone component-suite targets and official example decks
-  as well as test targets. Keep meaningful independent checks; never split one
-  run by output file to pad a count or split a module to meet a count ceiling.
+  decides the tolerances. Which checks exist is not a decision the human is
+  asked: the set is the survey's, recorded by the agent, and the human is
+  informed of it (what is in, what was left out and why, which checks are
+  custom and why) in the survey summary and again in the task PR body.
+- **Which checks, and how many.** The default is exhaustive: every distinct
+  official test and example the module ships becomes one check, deduplicated
+  where two decks force the same path. There is no count target in either
+  direction. Build the set to the best effort: a deck that cannot run in the
+  container, needs data the tree does not carry, or cannot be shortened to a
+  sane run time is left out with its reason written in `tests.json`
+  (`suitable: false`, `why`), never silently. Skipping the survey, or
+  surveying a subset because the whole looks large, is strongly advised
+  against: the checks are the reward, and a module with fewer checks than
+  distinct official tests and no reason per omission is the first thing a
+  review flags. Survey graded stages, standalone component-suite targets and
+  official example decks as well as test targets. Keep meaningful independent
+  checks; never split one run by output file to pad a count or split a module
+  to meet a count ceiling. The human is informed of the set, not asked to
+  approve it.
 - **The default budget is guidance, not a check-count cap.** `suite_budget_s` (default 900) is the run time of all checks on
   one initial condition under the declared resources, with every check's
   source build excluded: `run.sh` prints `SAB_BUILD_SECONDS=<n>` after its
@@ -552,9 +561,10 @@ records their words. The agent gathers and presents; the human decides.
 The task brief presents the two tables first, then answers eight questions in
 order, each with one verdict word (SOUND, THIN or BROKEN) and its evidence:
 coverage and provenance (how many checks, upstream or custom, what official
-test or example each comes from, what suitable tests have no check and why,
-the justified breadth and runnable scientific value, explicit exclusions and
-the narrative behind the cut; non-exhaustiveness alone is not a defect); what
+test or example each comes from, which distinct official tests and examples
+have no check and whether the leaf states a reason for each; the default is
+exhaustive, an omission with a reason is not a defect, an omission without
+one or a suite that was never surveyed is THIN at best); what
 is graded (per check the physical quantity and the routine that produces it, and whether anything random or compiler sensitive sits in its
 path); pass policy and tolerance (per check the policy, bound, spread, floor
 and margin, too loose meaning a named fault would pass, too tight meaning a
@@ -563,8 +573,8 @@ port can change); calibration validity (the variant moves every stream, the
 spread is from the target architecture, the altbuild changes something); the
 solver's side (what it sees, whether the acceleration target is real, what
 leaks); record integrity; blind spots; and the numbered decision table last.
-The codebase brief asks the same of the cut: official tests and examples per
-module, justified coverage and practical exclusions, and the numerical
+The codebase brief asks the same of the cut: the distinct official tests and
+examples per module that the checks will have to cover, and the numerical
 landscape read from the source. SOUND, THIN and BROKEN are evidence-backed
 human judgments, never inferred from the number of checks.
 
