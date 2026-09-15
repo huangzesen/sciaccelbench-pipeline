@@ -83,7 +83,7 @@ def identical_word(byte_identical: bool, graded: bool) -> str:
 TABLE_HEAD = ["| check | policy | observable | tolerance | spread | margin | floor | variant | default vs upstream | run s | build s | identical |",
               "|---|---|---|---|---|---|---|---|---|---|---|---|"]
 READING_ORDER = ("Read first: the rows this table flags (margin under 50 or over 10,000, chaotic, custom, identical, run time far from its "
-                 "declared value); then the catalogue, the warrants, comment/README.md, the records. identical YES means every output file "
+                 "declared value or above 300 s); then the catalogue, the warrants, comment/README.md, the records. identical YES means every output file "
                  "is byte-identical; 'graded' means every graded value is identical (the validator's distance is 0) while an ungraded file "
                  "differs, which reads the same way. The margin is the bound divided by the "
                  "worst graded value's error in the nominal-versus-variant run, from the validator's bound_fraction; 'not reported' means the "
@@ -111,6 +111,9 @@ def presentation(leaf: Path, allow_custom_drivers: bool) -> tuple[list[str], dic
     customs = [i["name"] for i in infos if "custom" in (i.get("labels") or [])]
     if customs:
         flags.append("custom: " + ", ".join(customs))
+    longs = [i["name"] for i in infos if run_times.get(i["name"], times.get(i["name"], 0)) > config.CHECK_RUNTIME_ADVISED_S]
+    if longs:
+        flags.append(f"run time above {config.CHECK_RUNTIME_ADVISED_S} s: " + ", ".join(longs) + " (the rubric's runtime_note says why)")
     rw = (sv or {}).get("reward") or {}
     cons = (sv or {}).get("consent") or {}
     host = (sv or {}).get("host") or {}
@@ -131,7 +134,7 @@ def presentation(leaf: Path, allow_custom_drivers: bool) -> tuple[list[str], dic
         f"**Suite.** run time {(sv or {}).get('suite_seconds_nominal') if sv else '-'} s, builds {str((sv or {}).get('build_seconds_nominal')) + ' s' if isinstance((sv or {}).get('build_seconds_nominal'), (int, float)) else 'not reported'}, against {budget:.0f} s (guidance) on {cpus} declared cpus; {(sv or {}).get('budget') or '-'}.",
         f"**Host and consent.** {host.get('hostname') or '-'} ({host.get('arch') or '-'}, {host.get('docker_cpus') or '-'} docker cpus) under consent where={cons.get('where') or '-'} at {cons.get('at') or '-'}.",
         f"**Lint and record.** lint {len(errs)} error(s), {len(warns)} warning(s); record {'fresh' if fresh else 'STALE'}; freshness gate {'ok' if fresh and sv and sv.get('result') == 'passed' else 'not ok'}; CI: see the PR checks.",
-        f"**Flags.** {'; '.join(flags) if flags else 'none (no custom checks)'}.",
+        f"**Flags.** {'; '.join(flags) if flags else 'none (no custom checks, every check under 300 s)'}.",
         f"**Since the previous round.** {changed}.",
     ]
     check_rows = [check_row(leaf, i, rows, times, run_times, builds) for i in infos]
