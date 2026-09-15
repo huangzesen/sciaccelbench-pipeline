@@ -273,12 +273,26 @@ STEP 3  Author the checks of {task}.
   not be tightened mechanically to the tiny two-ULP spread. If no active input
   can be perturbed sensibly, an explicitly identical variant supplies no
   calibration evidence and the rubric says so.
-  Expose the settings that scale runtime as knobs in run.sh; the defaults are
-  the graded values. expected_runtime_s is the check's RUN time on the
-  declared cores, excluding its source build; run.sh prints
-  SAB_BUILD_SECONDS=<n> after the build so selfcheck can keep the two apart.
-  The suite budget ({budget} s of run time by default) is guidance: it never
-  justifies dropping a check; exceeding it is discussed with the human.
+  Run time and resources. Hold every check's graded run under 300 s on the
+  declared cores whenever possible (shorten the window or resolution through
+  its own knobs where the physics survives); a check that cannot be brought
+  under 300 s without losing what it grades is kept and says why in
+  rubric.json runtime_note, else lint refuses it. The suite total has no
+  cap; {budget} s of run time is strongly advised and never justifies dropping
+  a check; exceeding it is discussed with the human at STOP 3. Expose the
+  settings that scale runtime as knobs in run.sh, and one knob for the cores
+  the run uses (threads or MPI ranks); the defaults are the graded values,
+  and the resource knob's default is fixed at the declared per-check cpus,
+  never read from the host, since a thread or rank count can change the
+  summation order. expected_runtime_s is the check's RUN time on the declared
+  cores, excluding its source build; run.sh prints SAB_BUILD_SECONDS=<n>
+  after the build so selfcheck can keep the two apart. The stamped solve.sh
+  is resource aware: it packs as many checks at once as the host allowance
+  admits at the declared per-check share.
+  Whatever the window and the resources, compare only physically meaningful
+  production quantities: the state the science reads, fluxes, energies,
+  spectra, printed errors. Never a storage order, a step count, a timing, a
+  layout, a random draw or a sign convention.
 
   Policy type, tolerance, window and variant are hypotheses until the human
   finalizes them. The intended sequence: fill provisional values, `lint`,
