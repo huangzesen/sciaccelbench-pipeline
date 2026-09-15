@@ -34,8 +34,6 @@ Contents:
   (`vendor-manifest.json`). `tools/wrappers/` holds the thin downstream
   wrapper scripts the export installs (`scripts/sab.py`,
   `scripts/harbor_validate.py`, `scripts/vendor_sync.py`).
-- `tests/` — standard-library `unittest` only (`python3 -m unittest discover
-  -s tests -v`). No third-party test framework is used or permitted.
 
 ScienceAccelBench consumes this repository **only** through the export: the
 benchmark repo keeps working offline via `python3

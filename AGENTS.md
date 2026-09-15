@@ -15,7 +15,8 @@ Every change to this repository ends with the mechanical sync, in the same
 session, by the same author. There is no automation between the two
 repositories; this rule is the automation.
 
-1. Open a PR here, run `python3 -m unittest discover -s tests`, merge it.
+1. Open a PR here, exercise the changed commands by hand (`PYTHONPATH=src
+   python3 -m sciaccel_pipeline ...` against a scratch `SAB_PIPE_DIR`), merge it.
 2. From this checkout at the merged commit, run the release:
 
        python3 tools/release.py --dest <ScienceAccelBench checkout> --pr
@@ -36,7 +37,9 @@ Check whether the benchmark is current at any time, from its checkout:
 - Behaviour contracts (state layout under `SAB_PIPE_DIR`, command names,
   help and stdout text, refusal and consent gates, non-blocking report
   semantics) are preserved across releases unless the SPEC revision changes.
-- Tests are standard-library `unittest` only.
+- There is no test suite in this repository, by decision (2026-09-15): do
+  not add one. A change is verified by running the CLI and reading its
+  output, and by the exporter's own verify step.
 - The export is a pure function of this tree plus the revision string. It
   writes only the files it owns and deletes nothing; stale generated files
   on the benchmark side are reported for a human to remove.
