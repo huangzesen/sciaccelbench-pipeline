@@ -56,12 +56,18 @@ class FlowTest(unittest.TestCase):
         (self.pipe / "demo" / "modules.json").write_text(json.dumps(MODULES), encoding="utf-8")
         proc = self.cli("codebase", "propose-modules", "--codebase", "demo")
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("STOP 1: show this table and overview.md to the human.", proc.stdout)
+        # The single-module default records itself: no STOP 1, no human words needed.
+        self.assertIn("Single-module default recorded", proc.stdout)
+        self.assertNotIn("STOP 1", proc.stdout.split("Single-module default recorded")[0])
+        mdoc = json.loads((self.pipe / "demo" / "modules.json").read_text())
+        self.assertEqual(mdoc["approval"]["modules"], ["demo"])
+        self.assertIn("single-module default", mdoc["approval"]["human_ref"])
+        self.assertTrue((self.pipe / "demo" / "codebase-metadata.json").is_file())
 
+        # A human approval may still be recorded on top of the default.
         proc = self.cli("codebase", "approve-modules", "--codebase", "demo", "--human-ref", "go ahead")
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("approved 1 module(s): ['demo']", proc.stdout)
-        self.assertTrue((self.pipe / "demo" / "codebase-metadata.json").is_file())
 
         # Step 1.5 refusal: survey-tests refuses while the source PR is unmerged.
         proc = self.cli("codebase", "survey-tests", "--codebase", "demo")
@@ -141,6 +147,10 @@ class FlowTest(unittest.TestCase):
             (self.pipe / "demo" / "modules.json").write_text(json.dumps(proposal))
             proc = self.cli("codebase", "propose-modules", "--codebase", "demo")
             self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            # Neither a subsystem slug nor a multi-module cut is the default: both stay a human stop.
+            self.assertIn("STOP 1", proc.stdout)
+            self.assertNotIn("Single-module default recorded", proc.stdout)
+            self.assertNotIn("approval", json.loads((self.pipe / "demo" / "modules.json").read_text()))
 
     def test_status_without_state(self):
         proc = self.cli("status")
