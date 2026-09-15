@@ -61,13 +61,15 @@ BROKEN, and the evidence (file:line, command output, record field).
      value) saying what the flag means for that check.
   1. Coverage and provenance. How many checks; which come from an official
      test or example and which are custom, each named with the file it comes
-     from; which suitable official tests and shipped example decks have no
-     check, and why the author left them out; justified breadth, task scope,
-     runnable scientific value and practical run/cost trade-offs, not a count
-     target; the narrative behind the cut from comment/README.md, judged, not
-     repeated. Coverage ought to be exhaustive; this is an aim, not a requirement: explicit justified
-     exclusions are allowed and non-exhaustiveness alone is not a defect.
-     SOUND, THIN and BROKEN are evidence-backed judgments, not check-count labels.
+     from; which distinct official tests and shipped example decks have no
+     check, and whether the leaf states a reason for each (test-survey.json,
+     suitable: false with its why; comment/README.md); the narrative behind
+     the cut, judged, not repeated. The default is exhaustive, one check per
+     distinct official test or example: an omission with a reason is not a
+     defect; an omission without one, or a suite the survey never listed, is
+     THIN at best, and a survey that was skipped for a module that ships
+     tests or examples is the first item of the decision table. SOUND, THIN
+     and BROKEN are evidence-backed judgments, not check-count labels.
   2. What is graded. Per check, the physical quantity compared (a field, a
      spectrum, an energy, a trajectory, a converged solution) and the routine
      in the source that produces it, in one sentence each. Then the two

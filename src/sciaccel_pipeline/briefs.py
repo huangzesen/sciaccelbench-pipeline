@@ -194,14 +194,19 @@ STEP 2  Survey the official tests of every approved module.
   Mark tests known a priori to be chaotic. The proposal is a hypothesis; it is
   finalized with the human after the calibration run, with taste.
 
-  How many checks: there is no preset check-count target. Use justified
-  official-test and example coverage, task scope, runnable scientific value,
-  explicit exclusions and practical run/cost trade-offs. Coverage ought to be
-  exhaustive; this is an aim, not a requirement: justify exclusions and review substantial omissions;
-  non-exhaustiveness alone is not a defect. Survey graded stages, standalone
-  component-suite targets and official example decks as well as test targets.
-  Never split one run by output file to pad a count, or split a module to meet
-  a count ceiling. The human judges coverage from evidence, not a quota.
+  Which checks: the default is exhaustive. Every distinct official test and
+  example the module ships is listed here and every suitable one becomes a
+  check, deduplicated where two decks force the same path; there is no count
+  target in either direction. Best effort, never silent: a deck that cannot
+  run in the container, needs data the tree does not carry, or cannot be
+  shortened to a sane run time stays in this file with suitable: false and
+  its reason in why. Skipping this survey, or surveying a subset because the
+  whole looks large, is strongly advised against: the checks are the reward.
+  Survey graded stages, standalone component-suite targets and official
+  example decks as well as test targets. Never split one run by output file
+  to pad a count, or split a module to meet a count ceiling. Do not ask the
+  human which checks to include: survey-tests prints the coverage and the
+  omissions, and you show them that summary as information.
 
   The suite budget ({budget} s of RUN time by default, source builds excluded)
   is guidance, not a cap. Do not omit a valuable test merely to fit the default;
