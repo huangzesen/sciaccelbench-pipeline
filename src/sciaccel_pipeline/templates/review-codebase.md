@@ -1,9 +1,14 @@
 REVIEW  {codebase}  (STOP 2, the source PR)                       pipeline revision {revision}
 =================================================================================
-The block above is what the CLI owns: the checkout, the change set, the tree
-and, when a cut is available, the lines per module. Everything below is yours:
-gather, present in the fixed shape, ask. Read-only on the tree; no build and
-no run until the human has said so in their own words (ASK, 2).
+The block above is what the CLI owns: first the CODEBASE PAGE computed from
+the PR's own report (what the code does, the code split with production lines,
+build and run, the cut, what is left out, the warnings), then the checkout, the
+change set, the tree and, when a cut is available, the lines per module. SHOW
+THE HUMAN THE PAGE FIRST, verbatim, before you read anything else; when the
+block says NO CODEBASE PAGE, tell the human the PR carries no report and ask
+for one before reading the tree. Everything below is yours: gather what the
+page cannot show, present in the fixed shape, ask. Read-only on the tree; no
+build and no run until the human has said so in their own words (ASK, 2).
 
 Speak plain English throughout. Write for a fresh PhD in a neighbouring field:
 say what the code computes before you say how it is cut, and name a mechanism
@@ -48,8 +53,12 @@ GATHER, in this order
      in. This is the landscape every later bound rests on.
 
 PRESENT to the human, in this shape and this order
-  1. One paragraph: what the codebase simulates, its size in lines and MB, its
-     language, its licence, the pin.
+  0. The codebase page from the block above, verbatim and first; nothing of
+     yours goes above it.
+  1. One paragraph on what the page does not say: anything the description
+     hides about what the code simulates, and whether the production-line
+     split looks right against the tree (bundled third-party counted as
+     production, tests or examples outside the markers).
   2. The module table: module | physics, one sentence | owned paths | lines |
      official tests and examples that exercise it; then the shared
      infrastructure and the unowned lines, and whether the unowned lines are

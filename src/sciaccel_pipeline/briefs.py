@@ -187,39 +187,17 @@ STEP 1.5  The source PR (outside this CLI). HARD STOP.
   Dockerfiles must build from code/{source}/ and public, well-known packages
   only. Pin, URL and licence go in task.toml.
 
-  The PR body is written for a reader who has one minute: the facts first,
-  the generated report last. In this order, as headed Markdown with tables:
-
-    What it is     two sentences on what the code simulates and who uses it;
-                   upstream URL, pin (tag or commit), licence.
-    Size           a table: language | files | lines of code, with a total
-                   and the tool that counted (cloc, or `wc -l`); what is
-                   vendored beyond upstream (bundled libraries, data tables,
-                   patches) and its size.
-    Build and run  the Step 1.2 record (runs.json), as its own headed section:
-                   the build system, the exact commands, the measured build
-                   time and its pitfalls; the landscape (every suite and
-                   example family, how it runs, how many decks, whether
-                   references ship); a table of what was ACTUALLY run (id,
-                   wall seconds, reproduced to how many digits, pitfalls);
-                   the pitfalls list (missing parameters, missing data files,
-                   flags, environment, network); what was not run and why.
-                   A body without real runs is sent back.
-    Module cut     the single-module default in one line (the whole codebase,
-                   one module, recorded by propose-modules); for a multi-module
-                   cut a table, one row per module: slug | title | what it
-                   computes | owned paths | lines of code | expensive path |
-                   official tests that exercise it | evidence for both
-                   conditions | approved or proposed-only; below it the human's
-                   approving words and date.
-    Shared         the shared infrastructure, listed once, with lines of code.
-    Left out       every not_packaged entry with its reason.
-    Report         the bounded Markdown report (codebase-metadata.md) pasted
-                   under a rule, when it exists; a line saying so when it
-                   does not. Then the skill revision that produced the PR.
-
-  Reviewers read the body before the tree; a body that is only the report or
-  only a link sends the PR back.
+  The PR body IS the codebase page, nothing hand-written above it:
+    sab.py codebase present --codebase {cb} --markdown
+  pasted verbatim (what the code does, the code split with production lines
+  first, build and run, the module cut with the human's approving words for a
+  multi-module one, what is left out, the warnings); then a rule; then
+  codebase-reports/{cb}/codebase-metadata.md for information only; then the
+  skill revision. The page is computed from the report, so fill the report's
+  description, source_extensions, example_path_markers and third_party_paths
+  first and rerun `codebase report` until the page reads right. Reviewers read
+  the page before the tree; a body that is prose instead of the page, only the
+  report, or only a link sends the PR back.
 
   Then STOP. Report the PR link and wait for the human to review and merge it.
   Nothing downstream (the test survey, the task scaffold, the checks) is
