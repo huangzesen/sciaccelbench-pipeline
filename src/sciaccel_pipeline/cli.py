@@ -2,6 +2,7 @@
 
     sab.py codebase init            --codebase <id> --code-path <checkout> [--source <name>] [--repo-url ...] [--pin ...]
                                     [--license ...] [--language ...] [--arxiv ...] [--owner ...] [--title ...]
+    sab.py codebase build-and-run   --codebase <id>   # Step 1.2: validates runs.json (native build, tests and examples actually run, pitfalls)
     sab.py codebase propose-modules --codebase <id>
     sab.py codebase approve-modules --codebase <id> --human-ref "<the human's words>" [--modules a,b]
     sab.py codebase report          --codebase <id> [--metadata PATH]  # Step 1.5 informational report, before source PR
@@ -29,7 +30,7 @@ the brief for its own step and ends with the next command. The CLI validates
 what the agent wrote; it does not write science, dispatch agents, or merge.
 
 Local, temporary state lives under ~/.sciaccel_pipeline/<codebase>/ (override
-with SAB_PIPE_DIR): codebase.json, overview.md, modules.json, tests.json and
+with SAB_PIPE_DIR): codebase.json, overview.md, runs.json, modules.json, tests.json and
 runs/. Nothing there is committed; scaffold and selfcheck copy what a reviewer
 needs into the leaf under comment/pipeline/.
 
@@ -61,7 +62,7 @@ from __future__ import annotations
 import argparse
 
 from .briefs import cmd_brief
-from .codebase import (cmd_codebase_approve, cmd_codebase_init, cmd_codebase_propose,
+from .codebase import (cmd_codebase_approve, cmd_codebase_build_and_run, cmd_codebase_init, cmd_codebase_propose,
                        cmd_codebase_source_merged, cmd_codebase_survey)
 from .config import POLICIES
 from .metadata import cmd_codebase_report
@@ -85,6 +86,8 @@ def main() -> None:
     for f in ("title", "repo-url", "pin", "license", "language", "domain", "owner", "notes"):
         p.add_argument(f"--{f}")
     p.add_argument("--arxiv", help="arXiv categories, comma-separated, primary first (registry/arxiv-categories.json); derives --domain")
+    p = cbp.add_parser("build-and-run", help="Step 1.2: validate runs.json, the record of the native build, the tests and examples actually run, and the pitfalls")
+    p.add_argument("--codebase", required=True)
     p = cbp.add_parser("propose-modules")
     p.add_argument("--codebase", required=True)
     p = cbp.add_parser("approve-modules")
@@ -181,7 +184,7 @@ def main() -> None:
     if a.mode == "codebase":
         {"init": cmd_codebase_init, "propose-modules": cmd_codebase_propose,
          "approve-modules": cmd_codebase_approve, "report": cmd_codebase_report, "source-merged": cmd_codebase_source_merged,
-         "survey-tests": cmd_codebase_survey}[a.cmd](a)
+         "survey-tests": cmd_codebase_survey, "build-and-run": cmd_codebase_build_and_run}[a.cmd](a)
     elif a.mode == "task":
         {"scaffold": cmd_task_scaffold, "add-check": cmd_task_add_check, "lint": cmd_task_lint,
          "build": cmd_task_build, "selfcheck": cmd_task_selfcheck, "plan": cmd_task_plan,
