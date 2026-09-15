@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. Use it to brief the human on the whole pipeline first, register a pinned codebase, investigate it with short native runs, package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged, survey its official tests and examples exhaustively (one check per distinct official test by default, every omission written down with its reason, the human informed and never asked which checks to include), and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint (every check under 300 s whenever possible, tunable in runtime and resources), obtain the human's consent to the run plan, build the Docker images, run the two-solve self-validation in a resource-aware solve, hand the human a review brief for the task PR, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
-version: 5.14.1
-last_changed_at: "2026-09-16T02:30:00Z"
+version: 5.14.2
+last_changed_at: "2026-09-16T03:00:00Z"
 ---
 
 # Package a ScienceAccelBench task
