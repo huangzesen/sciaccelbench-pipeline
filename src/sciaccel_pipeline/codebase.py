@@ -83,7 +83,7 @@ def deconflict(cb_id: str, source: str, existing: dict) -> dict | None:
         status = "held"
     else:
         print(f"  FINE: vendored more than {DECONFLICT_HOURS} h ago with no task work since. Take it over: post one comment")
-        print(f"  on {old_pr} saying `taken: <your handle> continues {source} from <today>` and proceed on the existing tree,")
+        print(f"  on {old_pr} saying `> 24 h inactiveness, taken by <your handle>` and proceed on the existing tree,")
         print("  or vendor a fresh pin under a new source PR whose body says so.")
         status = "fine"
     print()
