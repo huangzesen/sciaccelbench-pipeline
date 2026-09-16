@@ -1,6 +1,6 @@
 ---
 name: package-sciaccel-task
-description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. FIRST, every session: use the skill on origin/main (git fetch origin main && git merge origin/main), show the human the pipeline briefing in full (sab.py brief) before reading any code, and record their consent to run (task charter) before any Docker work. Then register a pinned codebase, investigate it, build it natively and actually run its tests and examples (Step 1.2, the record of the landscape and the pitfalls of running it), package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged, survey its official tests and examples exhaustively (one check per distinct official test by default, every omission written down with its reason, the human informed and never asked which checks to include), and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint (every check under 300 s whenever possible, tunable in runtime and resources), record the host charter once, build the Docker images, run the two-solve self-validation in a resource-aware solve, finalise policy and tolerance from three computed tables and open the task PR when the record is green, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
+description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. FIRST, every session: use the skill on origin/main (git fetch origin main && git merge origin/main), show the human the pipeline briefing in full (sab.py brief) before reading any code, and record their consent to run (task charter) before any Docker work. Then register a pinned codebase, investigate it, build it natively and actually run its tests and examples (Step 1.2, the record of the landscape and the pitfalls of running it), package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged (the codebase MUST be vendored and merged before any task work; there is no bypass), survey its official tests and examples exhaustively (one check per distinct official test by default, every omission written down with its reason, the human informed and never asked which checks to include), and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint (every check under 300 s whenever possible, tunable in runtime and resources), record the host charter once, build the Docker images, run the two-solve self-validation in a resource-aware solve, finalise policy and tolerance from three computed tables and open the task PR when the record is green, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
 version: 5.17.1
 last_changed_at: "2026-09-16T12:00:00Z"
 ---
@@ -188,12 +188,10 @@ python3 sab.py status         --task tasks/<id>/<slug>          # lint, charter,
 python3 sab.py task review    --task tasks/<id>/<slug>          # the review brief, the body of the task PR; open the PR, no go is asked
 ```
 
-Exactly four refusals: `task scaffold` refuses until the
+Exactly four refusals: `survey-tests` and `task scaffold` refuse until the
 source PR is merged into main and the human's go-ahead is recorded with
-`codebase source-merged`, unless the human bypasses that gate with
-`--allow-unmerged-source --human-ref "<their words>"`, which prints a loud
-warning, records the bypass in the codebase state and keeps `status` reporting
-it until `source-merged` is run; `task scaffold` refuses a module whose cut is not recorded (the
+`codebase source-merged`; there is no bypass, the codebase MUST be vendored
+first; `task scaffold` refuses a module whose cut is not recorded (the
 single-module default by `propose-modules`, a multi-module cut by the human's
 `approve-modules`); `task build` and `task selfcheck` refuse without a charter
 for this host whose bounds the run plan does not break; and `task selfcheck` refuses a leaf that
@@ -327,20 +325,18 @@ task scaffolding, the charter or any later step.
   requested reviewer, and request reviewers only when the human names them.
   A note the human asked for (one PR of a set, a decision they took) goes on
   its own lines above the footer, never after it.
-- **Step 1.5 is a hard stop.** After the module cut is recorded, open the
-  source PR and stop: report the link and wait for the human to review and
-  merge it. Do not scaffold a task or author checks on the same branch
-  while the source PR is open. The task PR is opened on a
-  fresh branch from the merged main and contains only the leaf, the registry, and its
-  required update to `codebase-reports/<id>/references.bib`, so it builds on source
-  that is already in the repository. The
-  human, and only the human, may lift the stop: with their words recorded
-  through `--allow-unmerged-source --human-ref`, Step 3 continues on the
-  unmerged tree under a warning; the task PR must then not merge before the
-  source PR, and `codebase source-merged` is run once it lands. Offer this
-  explicitly, in the same message as the source PR link: "merge it and I
-  continue after `source-merged`, or say the word and I run the rest in one
-  shot now." Never lift the gate on your own.
+- **The codebase MUST be vendored and merged BEFORE the task phase.** Step
+  1.5 is a hard stop with no bypass. After the module cut is recorded, open
+  the source PR and stop: report the link and wait for the human to review
+  and merge it. Nothing of Step 2 or Step 3 (the survey, a scaffold, a
+  check, a Dockerfile) is written until `code/<id>/` is on `origin/main` and
+  the merge is recorded with `codebase source-merged`; the CLI refuses
+  before that and offers no way round it. Do not offer one either, and do
+  not survey, scaffold or author on the source branch while the PR is open.
+  The task PR is then opened on a fresh branch from the merged main and
+  contains only the leaf, the registry, and its required update to
+  `codebase-reports/<id>/references.bib`, so it builds on source that is
+  already in the repository.
 - **The charter, once per host.** The first time a leaf is scaffolded for a
   host, ask the human once where the Docker work runs (this machine, or a
   host they name) and record it with `task charter`: a standing consent for
