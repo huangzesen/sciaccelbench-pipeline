@@ -1,34 +1,38 @@
 #!/usr/bin/env python3
-"""Land this repository's commit on a ScienceAccelBench checkout (the mechanical sync).
+"""Pin this repository's commit on a ScienceAccelBench checkout (the mechanical sync).
 
     python3 tools/release.py --dest <ScienceAccelBench checkout> [--pr] [--allow-unpushed]
 
-What it does, in order:
+The benchmark carries no copy of the pipeline. Its
+skills/package-sciaccel-task/PIPELINE_REVISION names the commit of this
+repository that its CI and its authors run, and this script bumps that pin:
+
   1. Reads this checkout's HEAD commit. Refuses a dirty tree, and refuses a
      commit that is not on origin/main unless --allow-unpushed is given, so the
-     revision written into vendor-manifest.json is always a merged commit.
-  2. Runs tools/export_scienceaccelbench.py into <dest> with that commit as
-     --revision, then runs the benchmark's scripts/vendor_sync.py verify.
-  3. Reports what changed under skills/package-sciaccel-task/. If nothing did,
-     the benchmark is already in sync and the script stops.
-  4. Without --pr: prints the commit / push / PR commands and stops.
+     pin is always a merged commit.
+  2. Writes the full sha into <dest>/skills/package-sciaccel-task/PIPELINE_REVISION.
+     If the file already holds it, the benchmark is in sync and the script stops.
+  3. Without --pr: prints the commit / push / PR commands and stops.
      With --pr: creates sync/pipeline-<sha7> from the benchmark's current
-     branch (which must be main), commits the generated files, pushes, and
-     opens the benchmark PR with `gh`.
+     branch (which must be main), commits the pin, pushes, and opens the
+     benchmark PR with `gh`.
 
-Nothing is deleted on either side. Stale generated files on the benchmark are
-reported by verify and left for a human to remove.
+Nothing else on the benchmark side is touched; the pointer SKILL.md and the
+loader scripts/sab.py there are hand-maintained and change only when the
+pipeline's location or its loading rule changes.
 """
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-EXPORTER = REPO / "tools" / "export_scienceaccelbench.py"
 SKILL_REL = Path("skills") / "package-sciaccel-task"
+PIN_REL = SKILL_REL / "PIPELINE_REVISION"
+UPSTREAM_REPO = "https://github.com/huangzesen/sciaccelbench-pipeline"
 
 
 def git(cwd: Path, *args: str, check: bool = True) -> str:
@@ -36,6 +40,11 @@ def git(cwd: Path, *args: str, check: bool = True) -> str:
     if check and proc.returncode != 0:
         raise SystemExit(f"release: git {' '.join(args)} failed in {cwd}:\n{proc.stderr.strip()}")
     return proc.stdout.strip()
+
+
+def skill_revision() -> str:
+    m = re.search(r'^REVISION\s*=\s*"([^"]+)"', (REPO / "src" / "sciaccel_pipeline" / "config.py").read_text(), re.M)
+    return m.group(1) if m else "unknown"
 
 
 def canonical_commit(allow_unpushed: bool) -> tuple[str, str]:
@@ -50,8 +59,8 @@ def canonical_commit(allow_unpushed: bool) -> tuple[str, str]:
     if not on_main:
         why = "origin/main could not be fetched" if not fetched else "HEAD is not on origin/main"
         if not allow_unpushed:
-            raise SystemExit(f"release: {why}; merge first, or pass --allow-unpushed to record an unmerged commit")
-        print(f"release: WARNING: {why}; recording {sha[:12]} anyway (--allow-unpushed)")
+            raise SystemExit(f"release: {why}; merge first, or pass --allow-unpushed to pin an unmerged commit")
+        print(f"release: WARNING: {why}; pinning {sha[:12]} anyway (--allow-unpushed)")
     return sha, subject
 
 
@@ -59,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--dest", required=True, help="ScienceAccelBench checkout root")
     parser.add_argument("--pr", action="store_true", help="commit on sync/pipeline-<sha7>, push, and open the benchmark PR")
-    parser.add_argument("--allow-unpushed", action="store_true", help="record a commit that is not on origin/main")
+    parser.add_argument("--allow-unpushed", action="store_true", help="pin a commit that is not on origin/main")
     args = parser.parse_args(argv)
 
     dest = Path(args.dest).expanduser().resolve()
@@ -67,35 +76,30 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"release: --dest must be a ScienceAccelBench git checkout (has skills/ and .git): {dest}")
     if git(dest, "status", "--porcelain", "--", str(SKILL_REL)):
         raise SystemExit(f"release: {dest / SKILL_REL} has uncommitted changes; start from a clean checkout")
+    pin = dest / PIN_REL
+    if not pin.is_file():
+        raise SystemExit(f"release: {pin} is missing; this benchmark checkout predates the pin model (skill 5.17.6)")
 
     sha, subject = canonical_commit(args.allow_unpushed)
-    print(f"release: canonical {sha[:12]} \"{subject}\"")
-    rc = subprocess.run([sys.executable, str(EXPORTER), "--dest", str(dest), "--revision", sha]).returncode
-    if rc != 0:
-        return rc
-    rc = subprocess.run([sys.executable, str(dest / SKILL_REL / "scripts" / "vendor_sync.py"), "verify"],
-                        cwd=str(dest)).returncode
-    if rc != 0:
-        return rc
-
-    changed = git(dest, "status", "--porcelain", "--", str(SKILL_REL))
-    if not changed:
-        print(f"release: {dest} is already in sync with {sha[:12]}; nothing to land")
+    rev = skill_revision()
+    print(f"release: canonical {sha[:12]} \"{subject}\" (skill {rev})")
+    have = pin.read_text(encoding="utf-8").split()
+    if have and have[0] == sha:
+        print(f"release: {dest} already pins {sha[:12]}; nothing to land")
         return 0
-    print("release: generated changes on the benchmark side:")
-    for line in changed.splitlines():
-        print(f"  {line}")
+    print(f"release: pin {have[0][:12] if have else '(empty)'} -> {sha[:12]}")
+    pin.write_text(sha + "\n", encoding="utf-8")
 
     branch = f"sync/pipeline-{sha[:7]}"
-    title = f"sync: pipeline {sha[:7]} — {subject}"
-    body = (f"Mechanical export of aitofound/sciaccelbench-pipeline @ `{sha}`\n\n"
+    title = f"sync: pipeline {sha[:7]} (skill {rev}) — {subject}"
+    body = (f"Pins {UPSTREAM_REPO} @ `{sha}` (skill {rev})\n\n"
             f"> {subject}\n\n"
-            "Generated by `tools/release.py`; the diff is exactly the exporter's output plus "
-            "`vendor-manifest.json`. `scripts/vendor_sync.py verify` passes offline.\n")
+            "Generated by `tools/release.py`; the diff is the one line of "
+            "`skills/package-sciaccel-task/PIPELINE_REVISION`. CI checks the pipeline out at this commit.\n")
     if not args.pr:
         print("\nrelease: to land it:")
         print(f"  git -C {dest} checkout -b {branch}")
-        print(f"  git -C {dest} add {SKILL_REL}")
+        print(f"  git -C {dest} add {PIN_REL}")
         print(f"  git -C {dest} commit -m {title!r}")
         print(f"  git -C {dest} push -u origin {branch}")
         print(f"  gh pr create --repo <benchmark> --head {branch} --title {title!r} --body '<see release.py>'")
@@ -105,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     if current != "main":
         raise SystemExit(f"release: the benchmark checkout is on {current!r}; --pr branches from main only")
     git(dest, "checkout", "-q", "-b", branch)
-    git(dest, "add", "--", str(SKILL_REL))
+    git(dest, "add", "--", str(PIN_REL))
     git(dest, "commit", "-q", "-m", title)
     git(dest, "push", "-q", "-u", "origin", branch)
     proc = subprocess.run(["gh", "pr", "create", "--head", branch, "--title", title, "--body", body],

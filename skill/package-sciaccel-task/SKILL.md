@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. FIRST, every session: use the skill on origin/main (git fetch origin main && git merge origin/main), show the human the pipeline briefing in full (sab.py brief) before reading any code, deconflict (codebase init reports whether the codebase is already vendored on main and since when: older than 24 hours with no task work is fine to take over with the comment `> 24 h inactiveness, taken by <handle>` on the old source PR; younger, or with task work, is held and waits for the human), and record their consent to run (task charter) before any Docker work. Then register a pinned codebase, investigate it, build it natively and actually run its tests and examples (Step 1.2, the record of the landscape and the pitfalls of running it), package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged (the codebase MUST be vendored and merged before any task work; there is no bypass), survey its official tests and examples exhaustively (one check per distinct official test by default, every omission written down with its reason, the human informed and never asked which checks to include), and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint (every check under 300 s whenever possible, tunable in runtime and resources), record the host charter once, build the Docker images, run the two-solve self-validation in a resource-aware solve, finalise policy and tolerance from three computed tables and open the task PR when the record is green, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
-version: 5.17.5
-last_changed_at: "2026-09-16T19:00:00Z"
+version: 5.17.6
+last_changed_at: "2026-09-16T21:30:00Z"
 ---
 
 # Package a ScienceAccelBench task
@@ -16,9 +16,14 @@ English only.
 Agents have skipped them. None of them is optional, and nothing below this
 section happens before they are done.
 
-1. **Use the skill on `origin/main`, never the copy on your branch.** Run
-   `git fetch origin main && git merge origin/main` first, and read and run
-   `skills/package-sciaccel-task/` as it is on `origin/main`.
+1. **Use the skill `origin/main` pins, never the copy on your branch.** Run
+   `git fetch origin main && git merge origin/main` first. The skill and its
+   CLI live in `github.com/huangzesen/sciaccelbench-pipeline`; the benchmark
+   carries only a pointer, and `skills/package-sciaccel-task/PIPELINE_REVISION`
+   on `origin/main` names the commit to use. Clone the pipeline next to the
+   benchmark checkout (or point `SAB_PIPELINE` at a clone) at that commit;
+   `skills/package-sciaccel-task/scripts/sab.py` loads it from there and warns
+   when the clone is on another commit.
 2. **Show the human the briefing, in full, before you read a line of the
    codebase.** Run it, paste its whole output into your own message, and
    name the stops that will need them:
@@ -599,7 +604,7 @@ task scaffolding, the charter or any later step.
 ## Reviewing a PR: the review mode
 
 The reviewer's side of the two review stops is the CLI's third mode, one
-command per stop, run with the current pipeline (`origin/main`'s copy) against
+command per stop, run with the current pipeline (the commit `origin/main` pins) against
 a detached checkout of the PR head, never with the PR's own skill copy:
 
 ```bash

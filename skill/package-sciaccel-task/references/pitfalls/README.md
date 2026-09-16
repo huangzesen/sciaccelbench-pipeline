@@ -62,7 +62,7 @@ were taken; none carries an estimate.
 
 File a **Known pitfall** issue on `aitofound/ScienceAccelBench`, the benchmark
 repository, using the issue template there (the skill's canonical source lives
-in `aitofound/sciaccelbench-pipeline`, but pitfalls are found on leaves and are
+in `huangzesen/sciaccelbench-pipeline`, but pitfalls are found on leaves and are
 discussed where the leaves are). Give the symptom, what
 breaks and why, how it was found, how the next packager detects it in a new
 codebase, what to do in the check, and the measurement with the leaf or PR

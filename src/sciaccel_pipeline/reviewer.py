@@ -101,11 +101,42 @@ def fmt_bytes(n: int) -> str:
 
 
 def skill_version_in_tree() -> str | None:
-    p = config.ROOT / "skills" / "package-sciaccel-task" / "SKILL.md"
-    if not p.is_file():
+    """What the benchmark tree carries: the SKILL.md version of a vendored copy (pre-5.17.6 trees),
+    else `pin <sha12>` from skills/package-sciaccel-task/PIPELINE_REVISION, else None."""
+    d = config.ROOT / "skills" / "package-sciaccel-task"
+    p = d / "SKILL.md"
+    if p.is_file():
+        m = re.search(r"^version:\s*([0-9][^\s]*)", p.read_text(encoding="utf-8", errors="replace"), re.M)
+        if m:
+            return m.group(1)
+    pin = d / "PIPELINE_REVISION"
+    if pin.is_file():
+        words = pin.read_text(encoding="utf-8", errors="replace").split()
+        if words:
+            return f"pin {words[0][:12]}"
+    return None
+
+
+def cli_commit() -> str | None:
+    """The pipeline commit this CLI runs from, when it runs from a git checkout; None otherwise."""
+    try:
+        proc = subprocess.run(["git", "-C", str(Path(__file__).resolve().parents[2]), "rev-parse", "HEAD"],
+                              capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
         return None
-    m = re.search(r"^version:\s*([0-9][^\s]*)", p.read_text(encoding="utf-8", errors="replace"), re.M)
-    return m.group(1) if m else None
+    return proc.stdout.strip()[:12] if proc.returncode == 0 and proc.stdout.strip() else None
+
+
+def skill_line() -> str:
+    tree, mine, commit = skill_version_in_tree(), config.REVISION, cli_commit()
+    me = f"{mine} at {commit}" if commit else mine
+    if tree and tree.startswith("pin "):
+        same = commit is not None and tree == f"pin {commit}"
+        head = f"**Skill.** the tree pins pipeline {tree[4:]}; this CLI is {me}"
+    else:
+        same = tree == mine
+        head = f"**Skill.** the tree's copy is {tree or 'absent'}; this CLI is {me}"
+    return head + ("" if same else "; review against this CLI and say what differs") + "."
 
 
 def brief_text(name: str, **tokens) -> str:
@@ -396,9 +427,8 @@ def coverage_facts(leaf: Path, ctx: dict) -> list[str]:
 def task_page(leaf: Path, co: dict, present: list[str], ctx: dict, harbor: str) -> list[str]:
     sv = ctx["sv"]
     head12 = (co["head"] or "unknown")[:12]
-    tree_skill, mine = skill_version_in_tree(), config.REVISION
     L = [f"# Task review: {rel(leaf)} at {head12}  (STOP 6, the task PR)", "", checkout_line(co, rel(leaf) + "/"),
-         f"**Skill.** the tree's copy is {tree_skill or 'absent'}; this CLI is {mine}" + ("" if tree_skill == mine else "; review against this CLI and say what differs") + ".", ""]
+         skill_line(), ""]
     L += present
     L += ["**Lint.** " + (f"{len(ctx['errs'])} error(s), {len(ctx['warns'])} warning(s)" if (ctx["errs"] or ctx["warns"]) else "PASS")]
     L += [f"  error {e}" for e in ctx["errs"]] + [f"  warn  {w}" for w in ctx["warns"]]

@@ -4,12 +4,12 @@ ROOT, PIPE and TEMPLATES keep the semantics of the original monolithic
 skills/package-sciaccel-task/scripts/sab.py:
 
   ROOT       the ScienceAccelBench checkout the CLI operates on. SAB_ROOT wins;
-             the vendored downstream wrapper anchors it to the repository that
-             contains the skill (the historical default); the bare console
-             script falls back to the current working directory.
+             the benchmark's loader (skills/package-sciaccel-task/scripts/sab.py)
+             anchors it to the repository that contains the skill pointer (the
+             historical default); the bare console script falls back to the
+             current working directory.
   PIPE       local, temporary pipeline state (SAB_PIPE_DIR, else ~/.sciaccel_pipeline).
-  TEMPLATES  the task/check/briefing templates; package data by default, the
-             downstream wrapper points it at the skill's templates/ directory.
+  TEMPLATES  the task/check/briefing templates (package data).
 
 configure() rebinds these for an embedding entrypoint; environment variables
 keep priority, exactly as in the original script. Every module reads them as
@@ -34,7 +34,7 @@ CHECK_FILES = ("check.json", "run.sh", "rubric.json", "validate.py", "README.md"
 FILL = re.compile(r"<FILL\b")
 TOKEN = re.compile(r"\{\{[A-Z_]+\}\}")
 KNOB_LINE = re.compile(r"^[A-Z][A-Z0-9_]*=\S+")
-REVISION = "5.17.5"  # the SPEC/skill revision this CLI implements; must equal SKILL.md version
+REVISION = "5.17.6"  # the SPEC/skill revision this CLI implements; must equal SKILL.md version
 LANG_BY_EXT = {  # best effort, for the production-code split of the codebase page
     ".c": "C", ".h": "C", ".cc": "C++", ".cpp": "C++", ".cxx": "C++", ".hpp": "C++", ".hh": "C++", ".hxx": "C++", ".ipp": "C++",
     ".cu": "CUDA", ".cuh": "CUDA", ".f": "Fortran", ".for": "Fortran", ".f77": "Fortran", ".f90": "Fortran", ".f95": "Fortran",
