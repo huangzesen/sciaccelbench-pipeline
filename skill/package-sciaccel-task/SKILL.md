@@ -154,9 +154,9 @@ python3 sab.py codebase init --codebase <id> --code-path <checkout> --repo-url â
 #   investigate: read the checkout as a scientist would; write overview.md
 # Step 1.2: THE MOST IMPORTANT SUBSTEP: build it natively in a scratch copy, actually run a representative set of its
 #   tests and examples (never Docker, at most 3 minutes of wall time per run), record the landscape and every pitfall
-#   (missing parameters, data, flags, environment) in runs.json and, in the same pass, the survey in tests.json: every
-#   distinct official test and example, one row each with its verdict; then write modules.json
+#   (missing parameters, data, flags, environment) in runs.json; then write modules.json
 python3 sab.py codebase build-and-run   --codebase <id>        # validates runs.json, prints the build-and-run summary; strongly advised against skipping
+# Step 2: official-test survey, tests and example problems alike, written in the same pass as Step 1.2 (same walk of the tree)
 python3 sab.py codebase survey-tests    --codebase <id>        # validates tests.json, per-module coverage as information (never asked), the Step 3 commands
 python3 sab.py codebase propose-modules --codebase <id>        # validates modules.json, prints the table; records the single-module default itself, a multi-module cut is STOP 1
 python3 sab.py codebase approve-modules --codebase <id> --human-ref "<the human's words>"   # multi-module cuts only
@@ -265,8 +265,8 @@ task scaffolding, the charter or any later step.
   undocumented flag, an environment variable, a network or credential a
   test wants), each with its workaround. At most three minutes of wall time
   per run: shorten through the deck's own settings, and record a run that
-  cannot be shortened as not run, with the reason. The survey is the same
-  walk, written in the same pass as `tests.json`: every distinct official
+  cannot be shortened as not run, with the reason. The Step 2 survey is
+  the same walk, written in the same pass as `tests.json`: every distinct official
   test and example that exercises a module, one row each with its policy
   proposal, resources, measured runtime and whether it becomes a check or is
   left out with its reason. `codebase build-and-run` validates the record
@@ -381,7 +381,7 @@ task scaffolding, the charter or any later step.
   the failure modes packagers have measured on earlier leaves: a compiler
   that changes a discrete choice, a diagnostic that never lands on the graded
   iteration, a solver with two states, a floor that exists on one host only, a
-  validator that compares storage order. Read the index at the survey and before
+  validator that compares storage order. Read the index at Step 2 and before
   finalisation; open an entry when its symptom matches, and
   cite it in the rubric or the leaf README where it shaped a check. When a
   variant, an altbuild or a review exposes a new one, file it as a `Known
@@ -415,7 +415,7 @@ task scaffolding, the charter or any later step.
   direction. Build the set to the best effort: a deck that cannot run in the
   container, needs data the tree does not carry, or cannot be shortened to a
   sane run time is left out with its reason written in `tests.json`
-  (`suitable: false`, `why`, written in Step 1.2), never silently. Skipping the survey, or
+  (`suitable: false`, `why`, written in the same pass as Step 1.2), never silently. Skipping the survey, or
   surveying a subset because the whole looks large, is strongly advised
   against: the checks are the reward, and a module with fewer checks than
   distinct official tests and no reason per omission is the first thing a

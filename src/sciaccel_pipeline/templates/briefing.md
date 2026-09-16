@@ -6,7 +6,7 @@ will run where, and what exists at the end. Read it before anything is done.
   CODEBASE PHASE                                                sab.py codebase ...
   ---------------------------------------------------------------------------------
   init --> investigate --> build-and-run --> survey-tests --> propose-modules --> (STOP 1) --> report --> source PR --> [STOP 2]
-            (read;           (Step 1.2: build    (Step 1.3, same   (modules.json)    approve      (the page) (on a branch;  human
+            (read;           (Step 1.2: build    (Step 2, same     (modules.json)    approve      (the page) (on a branch;  human
              overview.md)     natively, ACTUALLY   pass: tests.json,                  -modules                 carries build  merged
                               run tests and        every official                                              -and-run and     |
                               examples <= 3 min    test, exhaustive,                                           the survey)      |
