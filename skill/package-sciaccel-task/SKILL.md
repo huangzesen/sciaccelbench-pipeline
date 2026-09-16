@@ -78,11 +78,12 @@ the form the current leaves fix in their generic statement, with a single
 GPU descriptor as the placeholder target set; it is a subset, not the
 definition. Judge a proposed module by whether accelerating its expensive
 path would speed up the science, on whatever device; an existing human GPU
-port of part of a module is the record to beat, not a disqualifier. The
-`acceleration` label marks the workload whose speed is measured, not the
-hardware it must run on. Other forms of the statement (an algorithmic
-rewrite, a new implementation on the same hardware) share this definition,
-and the check suite is what carries over to them.
+port of part of a module is the record to beat, not a disqualifier. No
+check is singled out as the acceleration workload: what is timed, and on
+what, is decided downstream with the tasks themselves. Other forms of the
+statement (an algorithmic rewrite, a new implementation on the same
+hardware) share this definition, and the check suite is what carries over
+to them.
 
 **Official tests** are the codebase's own test suites and its standard
 example problems alike: an upstream example is an official test even when
@@ -168,7 +169,7 @@ python3 sab.py codebase survey-tests --codebase <id>           # validates tests
 # Step 3: one task per module, on a fresh branch from the merged main
 python3 sab.py task scaffold  --codebase <id> --module <slug>
 python3 sab.py task charter   --where "local"|"<host>" --human-ref "<the human's words>"   # once per host, standing: builds, selfchecks, reruns and the PR opening under it (alias: task consent)
-python3 sab.py task add-check --task tasks/<id>/<slug> --name <check> --from-test <path> --policy pointwise|invariants [--chaotic] [--acceleration] [--custom --reason "…"]
+python3 sab.py task add-check --task tasks/<id>/<slug> --name <check> --from-test <path> --policy pointwise|invariants [--chaotic] [--custom --reason "…"]
 python3 sab.py task lint      --task tasks/<id>/<slug>
 python3 sab.py task plan      --task tasks/<id>/<slug>          # the run plan, information; a question only when it breaks a charter bound
 python3 sab.py task build     --task tasks/<id>/<slug>          # on the chartered machine
@@ -599,8 +600,7 @@ and margin, too loose meaning a named fault would pass, too tight meaning a
 named mechanism would fail a legitimate port, then the landscape of what a
 port can change); calibration validity (the variant moves every stream, the
 spread is from the target architecture, the altbuild changes something); the
-solver's side (what it sees, whether the acceleration target is real, what
-leaks); record integrity; blind spots; and the numbered decision table last.
+solver's side (what it sees, what leaks); record integrity; blind spots; and the numbered decision table last.
 The codebase review prints the codebase page first, from the PR's own
 `codebase-reports/<id>/codebase-metadata.json` (what the code does, the code
 split with production lines, build and run, the cut, what is left out), and
