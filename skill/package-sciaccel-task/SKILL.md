@@ -154,8 +154,10 @@ python3 sab.py codebase init --codebase <id> --code-path <checkout> --repo-url �
 #   investigate: read the checkout as a scientist would; write overview.md
 # Step 1.2: THE MOST IMPORTANT SUBSTEP: build it natively in a scratch copy, actually run a representative set of its
 #   tests and examples (never Docker, at most 3 minutes of wall time per run), record the landscape and every pitfall
-#   (missing parameters, data, flags, environment) in runs.json; then write modules.json
+#   (missing parameters, data, flags, environment) in runs.json and, in the same pass, the survey in tests.json: every
+#   distinct official test and example, one row each with its verdict; then write modules.json
 python3 sab.py codebase build-and-run   --codebase <id>        # validates runs.json, prints the build-and-run summary; strongly advised against skipping
+python3 sab.py codebase survey-tests    --codebase <id>        # validates tests.json, per-module coverage as information (never asked), the Step 3 commands
 python3 sab.py codebase propose-modules --codebase <id>        # validates modules.json, prints the table; records the single-module default itself, a multi-module cut is STOP 1
 python3 sab.py codebase approve-modules --codebase <id> --human-ref "<the human's words>"   # multi-module cuts only
 # Step 1.5: after module approval, write the informational, non-blocking metadata report (outside code/<source>/):
@@ -164,8 +166,6 @@ python3 sab.py codebase present --codebase <id> [--markdown]   # the page again;
 #           then open the source PR that vendors the pinned tree under code/<id>/ (outside the CLI),
 #           report the link, and wait for the human to merge it (STOP 2). Then record the merge:
 python3 sab.py codebase source-merged --codebase <id> --human-ref "<the human's words>" [--pr <url>]
-# Step 2: official-test survey, tests and example problems alike (runtimes measured in the Step 1 investigation)
-python3 sab.py codebase survey-tests --codebase <id>           # validates tests.json, per-module verdicts, Step 3 commands
 # Step 3: one task per module, on a fresh branch from the merged main
 python3 sab.py task scaffold  --codebase <id> --module <slug>
 python3 sab.py task charter   --where "local"|"<host>" --human-ref "<the human's words>"   # once per host, standing: builds, selfchecks, reruns and the PR opening under it (alias: task consent)
@@ -181,7 +181,7 @@ python3 sab.py status         --task tasks/<id>/<slug>          # lint, charter,
 python3 sab.py task review    --task tasks/<id>/<slug>          # the review brief, the body of the task PR; open the PR, no go is asked
 ```
 
-Exactly four refusals: `survey-tests` and `task scaffold` refuse until the
+Exactly four refusals: `task scaffold` refuses until the
 source PR is merged into main and the human's go-ahead is recorded with
 `codebase source-merged`, unless the human bypasses that gate with
 `--allow-unmerged-source --human-ref "<their words>"`, which prints a loud
@@ -218,7 +218,7 @@ gap descriptions. The human owns the approval of a multi-module cut and later ev
 
 The field-by-field shape of the shared components, the module cards, the
 official-test units (`test_files`, `test_definitions`, `collected_items`,
-`inner_cases`) and the measurement markers is in SPEC §4.1 Step 1.5A; the
+`inner_cases`) and the measurement markers is in SPEC §3 Step 1.5A; the
 starter file carries every key with a fill marker.
 
 The command validates safe JSON, normalizes known fields, computes deterministic facts
@@ -265,11 +265,15 @@ task scaffolding, the charter or any later step.
   undocumented flag, an environment variable, a network or credential a
   test wants), each with its workaround. At most three minutes of wall time
   per run: shorten through the deck's own settings, and record a run that
-  cannot be shortened as not run, with the reason. `codebase build-and-run`
-  validates the record and prints the summary; `propose-modules` and
-  `survey-tests` warn when it is missing, the report and the source PR body
-  carry it as their own section, and `task scaffold` copies it beside the
-  checks. Skipping this substep is strongly advised against.
+  cannot be shortened as not run, with the reason. The survey is the same
+  walk, written in the same pass as `tests.json`: every distinct official
+  test and example that exercises a module, one row each with its policy
+  proposal, resources, measured runtime and whether it becomes a check or is
+  left out with its reason. `codebase build-and-run` validates the record
+  and `survey-tests` the survey; `propose-modules` warns when either is
+  missing, the report and the source PR body carry both as their own
+  section, and `task scaffold` copies them beside the checks. Skipping this
+  substep is strongly advised against.
 - **STOP 1 exists only for a multi-module cut.** For the single-module
   default there is nothing to decide: `propose-modules` records the cut, and
   the codebase facts go straight into the source PR body, where the human
@@ -302,13 +306,13 @@ task scaffolding, the charter or any later step.
   only a link is sent back.
 - **Step 1.5 is a hard stop.** After the module cut is recorded, open the
   source PR and stop: report the link and wait for the human to review and
-  merge it. Do not write the test survey, scaffold a task or author checks on
-  the same branch while the source PR is open. The task PR is opened on a
+  merge it. Do not scaffold a task or author checks on the same branch
+  while the source PR is open. The task PR is opened on a
   fresh branch from the merged main and contains only the leaf, the registry, and its
   required update to `codebase-reports/<id>/references.bib`, so it builds on source
   that is already in the repository. The
   human, and only the human, may lift the stop: with their words recorded
-  through `--allow-unmerged-source --human-ref`, Steps 2 and 3 continue on the
+  through `--allow-unmerged-source --human-ref`, Step 3 continues on the
   unmerged tree under a warning; the task PR must then not merge before the
   source PR, and `codebase source-merged` is run once it lands. Offer this
   explicitly, in the same message as the source PR link: "merge it and I
@@ -377,7 +381,7 @@ task scaffolding, the charter or any later step.
   the failure modes packagers have measured on earlier leaves: a compiler
   that changes a discrete choice, a diagnostic that never lands on the graded
   iteration, a solver with two states, a floor that exists on one host only, a
-  validator that compares storage order. Read the index at Step 2 and before
+  validator that compares storage order. Read the index at the survey and before
   finalisation; open an entry when its symptom matches, and
   cite it in the rubric or the leaf README where it shaped a check. When a
   variant, an altbuild or a review exposes a new one, file it as a `Known
@@ -411,7 +415,7 @@ task scaffolding, the charter or any later step.
   direction. Build the set to the best effort: a deck that cannot run in the
   container, needs data the tree does not carry, or cannot be shortened to a
   sane run time is left out with its reason written in `tests.json`
-  (`suitable: false`, `why`), never silently. Skipping the survey, or
+  (`suitable: false`, `why`, written in Step 1.2), never silently. Skipping the survey, or
   surveying a subset because the whole looks large, is strongly advised
   against: the checks are the reward, and a module with fewer checks than
   distinct official tests and no reason per omission is the first thing a
