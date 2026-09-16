@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ScienceAccelBench packaging pipeline, revision 5.17.2</title>
+<title>ScienceAccelBench packaging pipeline, revision 5.17.5</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root {
@@ -99,7 +99,7 @@
   <h1>Packaging pipeline</h1>
   <p class="lede">The design specification for the skill under <code>skills/package-sciaccel-task/</code>: the canonical source the skill and its CLI are written against. English only, throughout the skill and every task it stamps.</p>
   <dl class="meta">
-    <dt>Status</dt><dd>Current. Revision 5.17.2 (deconfliction first, never a refusal: a codebase vendored on main more than 24 hours ago with no task work is taken over with a comment on its source PR; younger or with task work it is held and the human decides); 5.17.1 (footer on every PR; the source PR MUST merge before the task phase, no bypass); 5.17.0: the human decides physics, tolerance and the altbuild; everything else is a rule (three touchpoints in the task phase: the charter once per host, one finalisation from three computed tables, the review with a merge-ready line and three roles; the acceleration label requirement is removed). One line per earlier revision in §12.</dd>
+    <dt>Status</dt><dd>Current. Revision 5.17.5 (the survey's policy is provisional: read off the driver as shipped, re-derived at <code>add-check</code> from what the check's own driver writes, a dumped field graded pointwise, the survey row corrected when the call changes); 5.17.4 (the review table prints the pass policy in full, one column per check, from the rubric's <code>comparison.rule</code> sentence); 5.17.3 (the solve-driver variables <code>SAB_SOLVE_CPUS</code>, <code>SAB_SOLVE_MEMORY_GB</code> and the rest are not knob overrides); 5.17.2 (deconfliction first, never a refusal: a codebase vendored on main more than 24 hours ago with no task work is taken over with a comment on its source PR; younger or with task work it is held and the human decides); 5.17.1 (footer on every PR; the source PR MUST merge before the task phase, no bypass); 5.17.0: the human decides physics, tolerance and the altbuild; everything else is a rule (three touchpoints in the task phase: the charter once per host, one finalisation from three computed tables, the review with a merge-ready line and three roles; the acceleration label requirement is removed). One line per earlier revision in §12.</dd>
     <dt>Scope</dt><dd>Skill, one CLI with three modes, templates, root docs. Leaves that predate the form are out of scope (§11).</dd>
   </dl>
 </header>
@@ -170,7 +170,7 @@ sab.py codebase present --codebase &lt;id&gt; [--markdown]  <span class="c"># th
 <h3>Step 2: official-test survey (written in the same pass as Step 1.2)</h3>
 <p>The survey is the same walk of the tree as the Step 1.2 build-and-run record and is written in the same pass, before the module cut, the report and the source PR, so the source PR body carries the coverage; <code>survey-tests</code> validates it then and does not wait for the merge. Official tests and official examples are surveyed alike (§2): a codebase whose only shipped inputs are example problems, such as a directory of published-figure reproductions with no reference outputs, has as many official tests as it has examples, not zero.</p>
 <pre><code><span class="c">  agent writes tests.json: every official test that exercises an approved module, with
-  id, module, path (under the checkout, the same path as under code/&lt;id&gt;/), policy pointwise|invariants, chaotic true|false,
+  id, module, path (under the checkout, the same path as under code/&lt;id&gt;/), policy pointwise|invariants (provisional: the driver as shipped; re-derived at add-check, Step 3), chaotic true|false,
   exercises, resources {cpus, memory_gb, mpi_ranks}, upstream_runtime_s, runtime_measured,
   suitable, why, proposed_check</span>
 sab.py codebase survey-tests --codebase &lt;id&gt;   <span class="c"># validates, per-module coverage as information, prints the Step 3 commands; runs before the source PR</span></code></pre>
@@ -196,6 +196,7 @@ sab.py status         --task &lt;leaf&gt;
 <span class="c"># 3.5 hand-over (§4.4): the brief is written and the PR opened when the final record is green with no new flag</span>
 sab.py task review    --task &lt;leaf&gt;                     <span class="c"># the review brief, the body of the task PR</span>
 sab.py validate-harbor [leaf …] [--all tasks]      <span class="c"># what npm run check calls</span></code></pre>
+<p><strong>The survey's policy is provisional.</strong> The Step 2 row is read off the official driver as shipped, before anything is authored; a driver that prints only a residual on a random input earns invariants for that reason alone. At <code>add-check</code> the policy is re-derived from what the check's own driver writes: a check that dumps a field grades that field pointwise, whatever the row said, and a residual whose true value is zero (a round-trip error, an error against an analytic solution) is a secondary verdict at most once the field is in hand. When the re-derived call differs from the row, the row (<code>policy</code> and <code>why</code>) is corrected in <code>tests.json</code> in the same commit; the row, the rubric and its <code>comparison.rule</code> sentence must agree.</p>
 <p>Every check's policy type, tolerance, window and variant are hypotheses until finalisation (§4.3, §9): the tables decide by rule and the human is asked only on flagged rows. Nothing in the CLI locks a check: revise the rubric or validator, rerun lint and selfcheck (or <code>replay</code>); <code>status</code> shows what is stale.</p>
 
 
@@ -384,6 +385,9 @@ sab.py validate-harbor [leaf …] [--all tasks]      <span class="c"># what npm 
 
 <h2 id="s12"><span class="n">12</span>Revision history</h2>
 <ul>
+  <li>5.17.5: the survey's policy is provisional: read off the driver as shipped, re-derived at <code>add-check</code> from what the check's own driver writes (a dumped field is graded pointwise; a zero-valued residual is a secondary verdict at most), the <code>tests.json</code> row corrected when the call changes. Occasioned by the fftpack leaf (#780), where eight copied drivers dumped the transformed array and every check graded only its max and mean.</li>
+  <li>5.17.4: the review table prints the pass policy in full, one column per check, never truncated: the rubric's <code>comparison.rule</code> sentence when present, otherwise composed from the comparison spec; the observable is no longer truncated; finalisation Table A names the pass policy.</li>
+  <li>5.17.3: the solve-driver variables (<code>SAB_SOLVE_CPUS</code>, <code>SAB_SOLVE_MEMORY_GB</code>, <code>SAB_ORACLE_DIR</code>, <code>SAB_DOCKER_IMAGE</code>, <code>SAB_CHECKS</code>) are the driver's, withheld from the container, and are not recorded as knob overrides; listed once in <code>config.SOLVE_DRIVER_VARS</code>.</li>
   <li>5.17.2: deconfliction first, never a refusal: <code>codebase init</code> checks origin/main before any investigation; a codebase vendored more than 24 hours ago with no task work is taken over with the comment <code>&gt; 24 h inactiveness, taken by &lt;handle&gt;</code> on its source PR; younger, or with task work, it is held and the human decides.</li>
   <li>5.17.1: every source and task PR ends with the same two-line footer, the skill revision and <code>Steward: @handle (full name)</code>, a tag for credit and never a review request; the Step 1.5 stop is absolute: the codebase MUST be vendored and merged before the task phase, the <code>--allow-unmerged-source</code> bypass is removed from the CLI and the agent offers none.</li>
   <li>5.17.0: the human decides physics, tolerance and the altbuild, everything else by rule (the skill opens with three imperatives: remote-main skill, briefing first, consent before running; the Step 2 survey written in the same pass as Step 1.2, before the source PR; charter once per host, <code>task finalise</code> with Tables A, B, C, <code>task replay</code>, the merge-ready line, the mechanical lane, curator, steward and reviewer roles, the graded fingerprint; the 50x and 10,000x flags and the acceleration label requirement removed).</li>
@@ -409,7 +413,7 @@ sab.py validate-harbor [leaf …] [--all tasks]      <span class="c"># what npm 
   <li>5.11.0: known pitfalls under <code>references/pitfalls/</code>, read at the survey, at calibration and at review; carries 5.10.2, pointwise grades physically meaningful production quantities only.</li>
 </ul>
 
-<footer>ScienceAccelBench · skills/package-sciaccel-task/SPEC.html · revision 5.17.2</footer>
+<footer>ScienceAccelBench · skills/package-sciaccel-task/SPEC.html · revision 5.17.5</footer>
 </main>
 </div>
 </body>
