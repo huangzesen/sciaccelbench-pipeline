@@ -44,6 +44,9 @@ LANG_BY_EXT = {  # best effort, for the production-code split of the codebase pa
     ".cl": "OpenCL", ".hip": "HIP", ".cs": "C#", ".swift": "Swift", ".nim": "Nim", ".zig": "Zig", ".chpl": "Chapel",
 }
 DEFAULT_EXAMPLE_MARKERS = ("example", "examples", "inputs", "tutorial", "tutorials", "demo", "demos", "benchmark", "benchmarks", "samples", "notebooks")
+# SAB_* variables that belong to the pipeline or to the solve driver (SPEC §7), never run.sh knobs: a selfcheck run
+# with them set is still a graded-defaults run and records no knob override.
+SOLVE_DRIVER_VARS = ("SAB_ROOT", "SAB_PIPE_DIR", "SAB_SOLVE_CPUS", "SAB_SOLVE_MEMORY_GB", "SAB_ORACLE_DIR", "SAB_DOCKER_IMAGE", "SAB_CHECKS")
 DEFAULT_BUDGET_S = 900  # the suite total that is strongly advised; never a cap
 CHECK_RUNTIME_ADVISED_S = 300  # one check's graded run, build excluded: held under this whenever possible, else the rubric says why
 RESOURCE_KNOB = re.compile(r"CPU|CORE|THREAD|RANK|NPROC|NTASK|OMP|MPI", re.I)  # a knob name that scales the run's resources
