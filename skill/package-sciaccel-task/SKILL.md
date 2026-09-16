@@ -1,8 +1,8 @@
 ---
 name: package-sciaccel-task
 description: Turn one scientific codebase into ScienceAccelBench task environments with the sab.py CLI. FIRST, every session: use the skill on origin/main (git fetch origin main && git merge origin/main), show the human the pipeline briefing in full (sab.py brief) before reading any code, deconflict (codebase init reports whether the codebase is already vendored on main and since when: older than 24 hours with no task work is fine to take over with the comment `> 24 h inactiveness, taken by <handle>` on the old source PR; younger, or with task work, is held and waits for the human), and record their consent to run (task charter) before any Docker work. Then register a pinned codebase, investigate it, build it natively and actually run its tests and examples (Step 1.2, the record of the landscape and the pitfalls of running it), package it as one whole-codebase module by default (a multi-module cut is extraordinary and needs human approval), get the source PR merged (the codebase MUST be vendored and merged before any task work; there is no bypass), survey its official tests and examples exhaustively (one check per distinct official test by default, every omission written down with its reason, the human informed and never asked which checks to include), and then, per module, scaffold a Harbor-style task, author self-contained checks (test + pass policy, nominal and variant initial conditions), lint (every check under 300 s whenever possible, tunable in runtime and resources), record the host charter once, build the Docker images, run the two-solve self-validation in a resource-aware solve, finalise policy and tolerance from three computed tables and open the task PR when the record is green, and, on the reviewer's side, brief the review of a source PR or a task PR in one fixed shape. The design is SPEC.html next to this file; the CLI validates structure but never writes or decides science, runs anything remotely, or merges.
-version: 5.17.2
-last_changed_at: "2026-09-16T14:00:00Z"
+version: 5.17.3
+last_changed_at: "2026-09-16T15:00:00Z"
 ---
 
 # Package a ScienceAccelBench task
