@@ -87,6 +87,7 @@ def main() -> None:
     for f in ("title", "repo-url", "pin", "license", "language", "domain", "owner", "notes"):
         p.add_argument(f"--{f}")
     p.add_argument("--arxiv", help="arXiv categories, comma-separated, primary first (registry/arxiv-categories.json); derives --domain")
+    p.add_argument("--human-ref", help="the human's words claiming a codebase that is already vendored and taken (deconfliction)")
     p = cbp.add_parser("build-and-run", help="Step 1.2: validate runs.json, the record of the native build, the tests and examples actually run, and the pitfalls")
     p.add_argument("--codebase", required=True)
     p = cbp.add_parser("propose-modules")

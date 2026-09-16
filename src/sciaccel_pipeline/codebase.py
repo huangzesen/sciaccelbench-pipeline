@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import subprocess
+import time
 from pathlib import Path
 
 from . import config
@@ -26,6 +27,65 @@ def source_on_main(source: str) -> str | None:
         return head.stdout.strip() or None
     except (OSError, subprocess.SubprocessError):
         return None
+
+
+def vendoring_status(source: str) -> dict:
+    """What origin/main already carries for code/<source>/: the age of its last commit and whether tasks/<source>/ exists."""
+    git = ["git", "-C", str(config.ROOT)]
+    out = {"on_main": False, "hours": None, "subject": "", "tasks": False}
+    try:
+        subprocess.run(git + ["fetch", "--quiet", "origin", "main"], capture_output=True, text=True, timeout=120)
+        tree = subprocess.run(git + ["ls-tree", "-d", "origin/main", f"code/{source}"], capture_output=True, text=True, timeout=60)
+        if tree.returncode != 0 or not tree.stdout.strip():
+            return out
+        out["on_main"] = True
+        log = subprocess.run(git + ["log", "-1", "--format=%ct %s", "origin/main", "--", f"code/{source}"], capture_output=True, text=True, timeout=60)
+        if log.stdout.strip():
+            ts, _, subject = log.stdout.strip().partition(" ")
+            out["hours"] = round((time.time() - int(ts)) / 3600, 1)
+            out["subject"] = subject
+        tasks = subprocess.run(git + ["ls-tree", "-d", "origin/main", f"tasks/{source}"], capture_output=True, text=True, timeout=60)
+        out["tasks"] = tasks.returncode == 0 and bool(tasks.stdout.strip())
+    except (OSError, subprocess.SubprocessError, ValueError):
+        pass
+    return out
+
+
+DECONFLICT_HOURS = 24
+
+
+def deconflict(cb_id: str, source: str, existing: dict, human_ref: str) -> dict | None:
+    """The first check of the codebase phase: is this codebase already vendored on origin/main, and by whom is it held?
+
+    Taken (vendored less than DECONFLICT_HOURS ago, or task work under tasks/<source>/ exists): refuse unless the human's
+    words claim it. Unclaimed (older than DECONFLICT_HOURS with no task work): a duplicate is allowed and said so."""
+    st = vendoring_status(source)
+    print("DECONFLICT  (before any investigation: is this codebase already vendored?)")
+    if not st["on_main"]:
+        print(f"  code/{source}/ is not on origin/main. Also look for the same upstream under another name:")
+        print(f"  `git ls-tree --name-only origin/main code/` and the open source PRs (title `code(<id>)`, the upstream URL).")
+        print()
+        return None
+    age = f"{st['hours']} h ago" if st["hours"] is not None else "at an unknown time"
+    print(f"  code/{source}/ IS on origin/main, last touched {age} ({st['subject'][:80]}); tasks/{source}/: {'present' if st['tasks'] else 'absent'}")
+    taken = st["tasks"] or (st["hours"] is not None and st["hours"] < DECONFLICT_HOURS)
+    if (existing.get("source_pr") or {}).get("human_ref"):
+        print(f"  this state already records its source PR as merged: you are continuing your own vendoring.")
+        print()
+        return None
+    if taken:
+        print(f"  TAKEN: someone vendored it within the last {DECONFLICT_HOURS} h or is already building its tasks.")
+        print("  Do not vendor it again and do not start Step 1 on it. Tell the human, in one line, who holds it and since")
+        print("  when, and ask whether you continue on the existing tree, hand over, or pick another codebase.")
+        if not human_ref.strip():
+            die(f"refusing: code/{source}/ is taken; on the human's words re-run with --human-ref '<their words>'")
+        print(f"  claimed on the human's words: {human_ref}")
+        print()
+        return {"at": now(), "status": "taken", "hours": st["hours"], "tasks": st["tasks"], "human_ref": human_ref}
+    print(f"  UNCLAIMED: vendored more than {DECONFLICT_HOURS} h ago with no task work since. A duplicate is allowed:")
+    print("  continue on the existing tree, or vendor a fresh pin under a new source PR and say so in its body.")
+    print()
+    return {"at": now(), "status": "unclaimed", "hours": st["hours"], "tasks": st["tasks"], "human_ref": human_ref}
 
 
 def require_source_merged(cb_id: str, cb: dict) -> None:
@@ -63,6 +123,10 @@ def cmd_codebase_init(a) -> None:
     text = briefing_text(doc)
     print(text)
     print("Show this briefing to the human in full before reading any code.\n")
+    # Then the deconfliction check, before any investigation and before any state is written.
+    claim = deconflict(a.codebase, doc["source"], existing, getattr(a, "human_ref", "") or "")
+    if claim:
+        doc["deconflict"] = claim
     doc.setdefault("steps", {})["init"] = now()
     write_json(d / "codebase.json", doc)
     (d / "briefing.md").write_text(text, encoding="utf-8")

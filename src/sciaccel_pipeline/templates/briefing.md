@@ -39,6 +39,11 @@ Nothing runs on any machine before your consent is recorded (the charter, STOP 3
   Docker is used by build and selfcheck only, under the charter; everything before is files and native runs.
 
 WHERE YOU ARE NEEDED, AND WHAT YOU WILL BE ASKED
+  0 deconflict     before anything is read: `codebase init` checks whether code/<id>/ is already
+                   vendored on main. Taken (vendored under 24 h ago, or task work exists): the
+                   agent stops and asks you who continues; your words are recorded. Unclaimed
+                   (older than 24 h, no task work): a duplicate is allowed, on the existing tree
+                   or as a fresh pin under a new source PR that says so.
   1 module cut     only for a multi-module cut, which is extraordinary. The default is the whole
                    codebase as one module (paths ["."], slug = the codebase name); propose-modules
                    records it without asking you, and you read the cut in the source PR body at
