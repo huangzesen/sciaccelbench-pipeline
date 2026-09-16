@@ -1,6 +1,7 @@
 """Codebase mode: register, decompose, approve, record the source merge, survey tests."""
 from __future__ import annotations
 
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -54,11 +55,11 @@ def vendoring_status(source: str) -> dict:
 DECONFLICT_HOURS = 24
 
 
-def deconflict(cb_id: str, source: str, existing: dict, human_ref: str) -> dict | None:
-    """The first check of the codebase phase: is this codebase already vendored on origin/main, and by whom is it held?
+def deconflict(cb_id: str, source: str, existing: dict) -> dict | None:
+    """The first check of the codebase phase: is this codebase already vendored on origin/main, and how old is that?
 
-    Taken (vendored less than DECONFLICT_HOURS ago, or task work under tasks/<source>/ exists): refuse unless the human's
-    words claim it. Unclaimed (older than DECONFLICT_HOURS with no task work): a duplicate is allowed and said so."""
+    Never a refusal. Older than DECONFLICT_HOURS with no task work: fine, take it over and say so on the old source PR.
+    Younger, or with task work: held by someone; the agent tells the human and waits for their word."""
     st = vendoring_status(source)
     print("DECONFLICT  (before any investigation: is this codebase already vendored?)")
     if not st["on_main"]:
@@ -67,25 +68,26 @@ def deconflict(cb_id: str, source: str, existing: dict, human_ref: str) -> dict 
         print()
         return None
     age = f"{st['hours']} h ago" if st["hours"] is not None else "at an unknown time"
+    m = re.search(r"\(#(\d+)\)\s*$", st["subject"])
+    old_pr = f"#{m.group(1)}" if m else "the source PR that vendored it (find it by `code({source})` in the PR titles)"
     print(f"  code/{source}/ IS on origin/main, last touched {age} ({st['subject'][:80]}); tasks/{source}/: {'present' if st['tasks'] else 'absent'}")
-    taken = st["tasks"] or (st["hours"] is not None and st["hours"] < DECONFLICT_HOURS)
     if (existing.get("source_pr") or {}).get("human_ref"):
-        print(f"  this state already records its source PR as merged: you are continuing your own vendoring.")
+        print("  this state already records its source PR as merged: you are continuing your own vendoring.")
         print()
         return None
-    if taken:
-        print(f"  TAKEN: someone vendored it within the last {DECONFLICT_HOURS} h or is already building its tasks.")
-        print("  Do not vendor it again and do not start Step 1 on it. Tell the human, in one line, who holds it and since")
-        print("  when, and ask whether you continue on the existing tree, hand over, or pick another codebase.")
-        if not human_ref.strip():
-            die(f"refusing: code/{source}/ is taken; on the human's words re-run with --human-ref '<their words>'")
-        print(f"  claimed on the human's words: {human_ref}")
-        print()
-        return {"at": now(), "status": "taken", "hours": st["hours"], "tasks": st["tasks"], "human_ref": human_ref}
-    print(f"  UNCLAIMED: vendored more than {DECONFLICT_HOURS} h ago with no task work since. A duplicate is allowed:")
-    print("  continue on the existing tree, or vendor a fresh pin under a new source PR and say so in its body.")
+    held = st["tasks"] or (st["hours"] is not None and st["hours"] < DECONFLICT_HOURS)
+    if held:
+        print(f"  HELD: vendored within the last {DECONFLICT_HOURS} h, or task work exists. Someone is on it.")
+        print("  Do not start Step 1 on it yet: tell the human in one line who holds it and since when, and go on")
+        print("  only on their word (continue on the existing tree, hand over, or pick another codebase).")
+        status = "held"
+    else:
+        print(f"  FINE: vendored more than {DECONFLICT_HOURS} h ago with no task work since. Take it over: post one comment")
+        print(f"  on {old_pr} saying `taken: <your handle> continues {source} from <today>` and proceed on the existing tree,")
+        print("  or vendor a fresh pin under a new source PR whose body says so.")
+        status = "fine"
     print()
-    return {"at": now(), "status": "unclaimed", "hours": st["hours"], "tasks": st["tasks"], "human_ref": human_ref}
+    return {"at": now(), "status": status, "hours": st["hours"], "tasks": st["tasks"], "old_pr": old_pr if m else None}
 
 
 def require_source_merged(cb_id: str, cb: dict) -> None:
@@ -124,7 +126,7 @@ def cmd_codebase_init(a) -> None:
     print(text)
     print("Show this briefing to the human in full before reading any code.\n")
     # Then the deconfliction check, before any investigation and before any state is written.
-    claim = deconflict(a.codebase, doc["source"], existing, getattr(a, "human_ref", "") or "")
+    claim = deconflict(a.codebase, doc["source"], existing)
     if claim:
         doc["deconflict"] = claim
     doc.setdefault("steps", {})["init"] = now()
